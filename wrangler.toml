@@ -16,6 +16,7 @@ migrations_dir = "drizzle"
 # Prod overrides — `wrangler deploy --env production` 會 pick 這段。
 # CF Workers Git deploy 把 `--env production` 寫在「部署命令」內。
 [env.production]
+name = "maple-atelier"
 
 [[env.production.d1_databases]]
 binding = "DB"
