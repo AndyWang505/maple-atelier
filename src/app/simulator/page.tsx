@@ -105,13 +105,14 @@ function Dot({ pos, cls }: DotSpec) {
 export default function SimulatorPage() {
   const initOnce = useRef(false);
 
-  // 一次性初始化:equipped 是空的才抽隨機。
-  // 從 /me /o/:id 點「載入到模擬器」進來時 loadOutfit 已經填過 equipped,要避免被 randomize 蓋掉
+  // Rehydrate persist 後若仍無裝備才 randomize — 保留 loadOutfit 已帶入或 persist 還原的搭配
   useEffect(() => {
     if (initOnce.current) return;
     initOnce.current = true;
-    const { equipped, randomize } = useSimulator.getState();
-    if (Object.keys(equipped).length === 0) randomize();
+    void useSimulator.persist.rehydrate()?.then(() => {
+      const { equipped, randomize } = useSimulator.getState();
+      if (Object.keys(equipped).length === 0) randomize();
+    });
   }, []);
 
   return (

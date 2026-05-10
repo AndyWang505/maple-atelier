@@ -24,8 +24,6 @@ type Catalog = Partial<Record<Slot, SlotCache>>;
 
 const DEFAULT_STANCE = "stand1";
 const DEFAULT_ANIMATED = false;
-const PERSIST_KEY = "maple-atelier-simulator";
-const PERSIST_VERSION = 1;
 
 interface SimulatorState {
   equipped: Equipped;
@@ -43,16 +41,16 @@ interface SimulatorState {
   generation: number;
   equip: (item: CatalogItem) => void;
   unequip: (slot: Slot) => void;
-  /** 清空所有裝備(naked)+ 將 stance / animated 還原為預設(stand1 / 靜態圖) */
+  /** 清空裝備並還原 stance / animated 為預設 */
   reset: () => void;
-  /** 重抽一套隨機搭配:必裝身體三件 + 選裝 8 件各 50% + (上衣+褲子) vs 套服 二擇一 */
+  /** 必裝身體三件 + 選裝 8 件各 50% + (上衣+褲子) vs 套服 二擇一 */
   randomize: () => void;
-  /** 切換性別。會清空現有裝備並還原 stance / animated(同 reset)。使用者要重新著裝須再按「隨機」 */
+  /** 切換性別會連帶清空裝備並還原 stance / animated */
   setGender: (gender: Gender) => void;
   setStanceId: (id: string) => void;
   setAnimated: (animated: boolean) => void;
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
-  /** 把 DB 取回的 OutfitPayload 還原成 store 狀態(從 /me 點 outfit 進 simulator 時用) */
+  /** 把 DB 取回的 OutfitPayload 還原成 store 狀態 */
   loadOutfit: (payload: OutfitPayload) => void;
 }
 
@@ -125,12 +123,17 @@ export const useSimulator = create<SimulatorState>()(
           generation: state.generation + 1,
         })),
 
-      setStanceId: (id) => set({ stanceId: id }),
-      setAnimated: (animated) => set({ animated }),
+      setStanceId: (id) => {
+        if (get().stanceId === id) return;
+        set({ stanceId: id });
+      },
+      setAnimated: (animated) => {
+        if (get().animated === animated) return;
+        set({ animated });
+      },
 
       loadOutfit: (payload) => {
-        // payload 只有 id 與 region/version,用快取補回 CatalogItem 完整欄位;沒快取的等
-        // 之後 ItemPicker 切到那 slot 時 loadSlot 會帶資料,先放 stub(name 暫顯 id)
+        // payload 只有 id + region/version,用 catalog cache 補回完整 CatalogItem;沒快取的給 stub,等下一次 loadSlot 補
         const state = get();
         const equipped: Equipped = {};
         for (const slot of SLOTS) {
@@ -206,10 +209,10 @@ export const useSimulator = create<SimulatorState>()(
       },
     }),
     {
-      name: PERSIST_KEY,
-      version: PERSIST_VERSION,
+      name: "maple-atelier-simulator",
       storage: createJSONStorage(() => localStorage),
-      // 只 persist 使用者搭配狀態 — catalog(slot items)太大且易變,generation 是 in-flight race 用,actions 是函式不能序列化
+      // 避免 SSR / client 初始渲染不一致 — 由消費端手動 rehydrate
+      skipHydration: true,
       partialize: (state) => ({
         equipped: state.equipped,
         gender: state.gender,
