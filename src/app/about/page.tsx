@@ -168,13 +168,13 @@ export default function AboutPage() {
         </div>
 
         <a
-          href={SITE_LINKS.github}
+          href={`${SITE_LINKS.github}/issues`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900 text-white font-semibold no-underline hover:bg-zinc-800 transition shadow-md"
         >
           <GitHubIcon style={{ fontSize: 20 }} />
-          前往 GitHub Repo
+          前往 GitHub Issues
         </a>
       </AboutSection>
 
