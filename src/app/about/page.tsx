@@ -57,7 +57,7 @@ export default function AboutPage() {
         title="關於本站"
       >
         <p>
-          Maple Atelier 楓葉工坊 是一個聚焦於新楓之谷時裝搭配的社群工具。使用者可即時試穿遊戲內裝備、儲存個人搭配方案，並與其他玩家分享、瀏覽彼此的造型作品。
+          聚焦於新楓之谷時裝搭配的社群空間。即時試穿裝備、儲存搭配，並與其他玩家分享、瀏覽彼此的造型。
         </p>
         <p>
           本站為非官方、非商業性質專案，獨立開發與維護，與 Nexon 無關。所有遊戲素材版權皆屬 Nexon Korea / Nexon America，本站僅作時裝搭配參考之用途。
@@ -118,21 +118,25 @@ export default function AboutPage() {
           <FAQ q="角色圖片可以下載嗎？">
             可以。模擬器頁面預覽區下方有下載按鈕，可以下載當前搭配的角色圖。
           </FAQ>
+          <FAQ q="如何刪除帳號？">
+            到「我的衣櫃」頁面，個人檔案區下方有「刪除帳號」按鈕。
+            確認後會立即刪除你的帳號、所有儲存的搭配（公開與私密）、所有按過「推」的紀錄。
+            <strong>資料無法復原</strong>，請謹慎操作。
+          </FAQ>
         </div>
       </AboutSection>
 
-      {/* 4. 問題回報 / 貢獻 */}
+      {/* 4. 問題回報 */}
       <AboutSection
         Icon={BugReportOutlinedIcon}
         badgeColor="#fef3c7"
         iconColor="#ea580c"
-        title="問題回報 & 貢獻"
+        title="問題回報"
       >
         <p>
-          專案 open source，程式碼公開、issue tracker 公開。發現 bug、有功能建議、或想直接送 PR，都歡迎到 GitHub repo 處理。
+          發現 bug 或有功能建議，歡迎到 GitHub repo 開 issue。
         </p>
 
-        {/* 回報 Bug */}
         <div className="rounded-2xl bg-zinc-50 border border-zinc-200 px-5 py-4 sm:px-6 sm:py-5">
           <h3 className="font-bold text-zinc-900 mb-2 flex items-center gap-2">
             <BugReportOutlinedIcon
@@ -161,17 +165,6 @@ export default function AboutPage() {
               ：瀏覽器、作業系統、螢幕大小
             </li>
           </ul>
-        </div>
-
-        {/* 送 PR */}
-        <div className="rounded-2xl bg-zinc-50 border border-zinc-200 px-5 py-4 sm:px-6 sm:py-5">
-          <h3 className="font-bold text-zinc-900 mb-2 flex items-center gap-2">
-            <GitHubIcon style={{ fontSize: 20 }} />
-            送 Pull Request
-          </h3>
-          <p className="text-sm text-zinc-600">
-            建議先開 issue 討論方向再動手，避免做完才發現方向不合。送 PR 時請使用 repo 內的 PR 模板填寫:變更內容、動機、是否有 breaking change、相關 issue 連結等。改動較大時也歡迎附上前後對照截圖。
-          </p>
         </div>
 
         <a
