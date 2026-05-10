@@ -27,7 +27,7 @@ export default function ShowcaseOutfitCard({
       <img
         src={outfitThumbnailUrl(outfit.payload, { resize: 3 })}
         alt={outfit.title}
-        className="absolute inset-0 w-full h-full object-contain group-hover:scale-115 transition-transform duration-300 ease-out"
+        className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ease-out"
         style={{
           imageRendering: "pixelated",
           // 角色貼齊卡片上緣,腳剛好落在底部 overlay 起點;免掉中間置中產生的上下空白

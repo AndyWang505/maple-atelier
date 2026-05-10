@@ -90,16 +90,14 @@ export default function ExploreOutfitCard({
         className="block relative aspect-square overflow-hidden"
         aria-label={`查看 ${outfit.title}`}
       >
-        <div className="absolute inset-x-0 bottom-0 flex justify-center h-[92%]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={outfitThumbnailUrl(outfit.payload)}
-            alt={outfit.title}
-            className="h-full w-auto max-w-none object-contain group-hover:scale-115 transition-transform duration-300 ease-out"
-            style={{ imageRendering: "pixelated" }}
-            loading="lazy"
-          />
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={outfitThumbnailUrl(outfit.payload)}
+          alt={outfit.title}
+          className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ease-out"
+          style={{ imageRendering: "pixelated" }}
+          loading="lazy"
+        />
       </Link>
 
       <div className="p-3 space-y-2">

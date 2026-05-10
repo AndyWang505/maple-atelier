@@ -45,9 +45,9 @@ const buildUrl = (payload: OutfitPayload, opts: PreviewOpts) => {
 
 /**
  * 卡片 / carousel 縮圖:固定 canvas、角色比例一致。
- * - resize 預設 2(192×192),大致對齊卡片實際顯示尺寸。
- * - pad 預設 padX=10 / padY=15(比 API 預設 30/50 緊一半多),減少角色周圍留白。
- *   極端尺寸的武器 / 帽子可能微切,點進詳情頁 (outfitFullUrl) 仍是完整的。
+ * resize 預設 2(192×192),對齊卡片實際顯示尺寸。
+ * 保留 maplestory.io 預設 padX=30/padY=50 — 任何裝備都不切;
+ * 視覺留白由卡片 layout 對齊圖片尺寸來避免,不在 API 層硬拗。
  */
 export const outfitThumbnailUrl = (
   payload: OutfitPayload,
@@ -56,8 +56,8 @@ export const outfitThumbnailUrl = (
   buildUrl(payload, {
     renderMode: 1,
     resize: opts?.resize ?? 2,
-    padX: opts?.padX ?? 10,
-    padY: opts?.padY ?? 15,
+    padX: opts?.padX,
+    padY: opts?.padY,
   });
 
 /** 詳情頁 / 高保真展示:variable bounding,大裝備不切 */
