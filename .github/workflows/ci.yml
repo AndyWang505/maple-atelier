@@ -3,7 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'LICENSE'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
   workflow_dispatch:
 
 # 同分支新 push 取消舊 job,省 Actions 配額
@@ -39,6 +49,10 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+
+      # 完整 OpenNext build,catches turbopack/edge-runtime/bundler 問題 typecheck 看不到的
+      - name: Build (OpenNext)
+        run: pnpm build:cf
 
       # continue-on-error:新 CVE 隨時冒出,不該擋 push 但要看得到
       - name: Audit dependencies

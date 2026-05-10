@@ -9,6 +9,7 @@
     <a href="./README.md">English</a> · <strong>繁體中文</strong>
   </p>
   <p>
+    <a href="https://github.com/AndyWang505/maple-atelier/actions/workflows/ci.yml"><img src="https://github.com/AndyWang505/maple-atelier/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
     <img src="https://img.shields.io/badge/Next.js-16-000?logo=next.js&style=flat-square" alt="Next.js 16" />
     <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=000&style=flat-square" alt="React 19" />
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white&style=flat-square" alt="TypeScript" />
