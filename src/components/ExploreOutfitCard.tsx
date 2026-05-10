@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
+import { tagChipSx } from "@/lib/mui/theme";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
@@ -133,6 +134,7 @@ export default function ExploreOutfitCard({
                 label={`#${t}`}
                 size="small"
                 variant="outlined"
+                sx={tagChipSx}
               />
             ))}
             {outfit.tags.length > 3 && (
@@ -140,7 +142,7 @@ export default function ExploreOutfitCard({
                 label={`+${outfit.tags.length - 3}`}
                 size="small"
                 variant="outlined"
-                sx={{ opacity: 0.6 }}
+                sx={{ ...tagChipSx, opacity: 0.6 }}
                 title={outfit.tags.slice(3).map((t) => `#${t}`).join(" ")}
               />
             )}

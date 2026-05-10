@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Chip from "@mui/material/Chip";
 import type { OutfitPayload } from "@/db/schema";
 import { outfitFullUrl } from "@/lib/outfit-preview";
+import { tagChipSx } from "@/lib/mui/theme";
 
 export interface OutfitCardData {
   id: number;
@@ -64,7 +65,7 @@ export default function OutfitCard({
 
       <div className="flex items-center justify-between -my-1">
         <h3
-          className="text-sm font-semibold truncate flex-1"
+          className="text-sm font-semibold truncate flex-1 my-2"
           title={outfit.title}
         >
           {outfit.title}
@@ -75,7 +76,7 @@ export default function OutfitCard({
       {outfit.tags && outfit.tags.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {outfit.tags.map((t) => (
-            <Chip key={t} label={`#${t}`} size="small" variant="outlined" />
+            <Chip key={t} label={`#${t}`} size="small" variant="outlined" sx={tagChipSx} />
           ))}
         </div>
       )}

@@ -12,6 +12,7 @@ import Switch from "@mui/material/Switch";
 import Chip from "@mui/material/Chip";
 import { useApiTopTags } from "@/lib/hooks/use-tags";
 import { OUTFIT_LIMITS, TAG_VALID_REGEX } from "@/lib/limits";
+import { tagChipSx, tagChipClickableSx } from "@/lib/mui/theme";
 
 const MAX_TITLE_LEN = OUTFIT_LIMITS.titleLen;
 const MAX_DESCRIPTION_LEN = OUTFIT_LIMITS.descriptionLen;
@@ -233,7 +234,7 @@ export default function SaveOutfitDialog({
         {previewTags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {previewTags.map((t) => (
-              <Chip key={t} label={`#${t}`} size="small" variant="outlined" />
+              <Chip key={t} label={`#${t}`} size="small" variant="outlined" sx={tagChipSx} />
             ))}
           </div>
         )}
@@ -250,6 +251,7 @@ export default function SaveOutfitDialog({
                   onClick={() => handleAddSuggestion(s)}
                   disabled={previewTags.length >= MAX_TAGS}
                   clickable
+                  sx={tagChipClickableSx}
                 />
               ))}
             </div>

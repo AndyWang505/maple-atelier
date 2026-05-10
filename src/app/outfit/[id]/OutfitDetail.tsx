@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Avatar from "@mui/material/Avatar";
 import Chip from "@mui/material/Chip";
+import { tagChipSx } from "@/lib/mui/theme";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -234,7 +235,7 @@ export default function OutfitDetail({
       {outfit.tags && outfit.tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {outfit.tags.map((t) => (
-            <Chip key={t} label={`#${t}`} size="small" variant="outlined" />
+            <Chip key={t} label={`#${t}`} size="small" variant="outlined" sx={tagChipSx} />
           ))}
         </div>
       )}
