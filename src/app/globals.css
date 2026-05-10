@@ -1,0 +1,101 @@
+/*
+ * Tailwind v4 — partial import to skip preflight.
+ * MUI's CssBaseline owns the global resets; Tailwind only contributes
+ * theme tokens + utility classes.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+:root {
+  --background: #fafafa;
+  --foreground: #1a1a1a;
+  --maple-red: #c8423d;
+  --maple-leaf: #e87a4f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-maple-red: var(--maple-red);
+  --color-maple-leaf: var(--maple-leaf);
+  /* 系統字型 stack:中文走 Mac PingFang TC / Win 微軟正黑,英文走 SF / Segoe。
+     好處:零字體 payload(Google Fonts Noto Sans TC 載 latin subset 中文也用不到),
+     省 50–200KB,無 FOUT。 */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC",
+    "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+}
+
+/* Hero 漸層緩慢漂移,讓背景有微微「呼吸」感(尊重 prefers-reduced-motion) */
+@keyframes gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-drift 14s ease-in-out infinite;
+}
+
+/* Hero 載入時的字級進場(從下淡入) */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 700ms ease-out backwards;
+}
+
+/* Hero 裝飾性光暈:慢速漂浮,做出有機運動感 */
+@keyframes blob-float-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+  66% {
+    transform: translate(-20px, 15px) scale(0.95);
+  }
+}
+
+@keyframes blob-float-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-30px, 25px) scale(1.1);
+  }
+}
+
+.animate-blob-1 {
+  animation: blob-float-1 18s ease-in-out infinite;
+}
+
+.animate-blob-2 {
+  animation: blob-float-2 22s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-gradient,
+  .animate-fade-in-up,
+  .animate-blob-1,
+  .animate-blob-2 {
+    animation: none;
+  }
+}
+

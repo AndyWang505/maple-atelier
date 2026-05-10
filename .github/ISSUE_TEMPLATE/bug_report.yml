@@ -1,0 +1,68 @@
+name: Bug 回報
+description: 回報 Maple Atelier 上遇到的問題或異常行為
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感謝抽空回報問題!為了能盡快重現並修好,請盡量把下列資訊填得詳細一些 🙏
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 問題描述
+      description: 發生了什麼?預期應該怎樣?實際變成怎樣?
+      placeholder: |
+        例如:在 /simulator 切換髮型時,角色預覽變成全黑。
+        預期應該顯示新髮型的渲染結果。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 重現步驟
+      description: 從哪一頁開始、依序點了什麼、輸入了什麼。越具體越好。
+      placeholder: |
+        1. 開啟 /simulator
+        2. 點選左側「髮型」分類
+        3. 任選一個髮型
+        4. 預覽區出現黑色方塊
+    validations:
+      required: true
+
+  - type: textarea
+    id: media
+    attributes:
+      label: 截圖或螢幕錄影
+      description: 一張畫面勝過千言萬語。動態問題建議附短片(可拖檔案到此區或貼連結)。
+      placeholder: 拖曳檔案到這裡,或貼上連結
+
+  - type: input
+    id: browser
+    attributes:
+      label: 瀏覽器
+      placeholder: 例如 Chrome 132 / Safari 17 / Firefox 130
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: 作業系統
+      placeholder: 例如 Windows 11 / macOS 14 / iOS 17
+    validations:
+      required: true
+
+  - type: input
+    id: viewport
+    attributes:
+      label: 螢幕大小(顯示 / RWD 問題請填)
+      placeholder: 例如 1920x1080 桌機 / iPhone 14 / iPad mini
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 其他補充
+      description: 主控台 console 錯誤訊息、Network 請求失敗、近期相關改動等。

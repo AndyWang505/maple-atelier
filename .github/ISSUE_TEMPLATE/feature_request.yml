@@ -1,0 +1,39 @@
+name: 功能建議
+description: 提出新功能或改善現有功能的想法
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        想到好點子歡迎提出來!如果只是想討論方向也 OK,不一定要寫得很完整。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解決什麼問題?
+      description: 這個建議是出於什麼使用情境?目前哪裡卡卡的?
+      placeholder: 例如:儲存搭配時想標記給特定職業參考,但目前沒有職業標籤
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 提案的解法
+      description: 你想到的解法 / 設計。畫個草圖或寫流程都可以。
+      placeholder: 例如:在儲存對話框加職業多選欄位,並在卡片右下角顯示職業 chip
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案 / 已考慮過的做法
+      placeholder: 例如:用既有的自由 tag 也能達成,但搜尋體驗會比較差
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 補充資訊
+      description: 截圖、靈感來源、相關 issue 等。

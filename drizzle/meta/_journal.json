@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1778306622999,
+      "tag": "0000_early_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1778311800235,
+      "tag": "0001_orange_mesmero",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1778400000000,
+      "tag": "0002_likes_only_with_description",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1778500000000,
+      "tag": "0003_user_display_name",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1778600000000,
+      "tag": "0004_outfit_tags",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1778700000000,
+      "tag": "0005_rate_limits",
+      "breakpoints": true
+    }
+  ]
+}

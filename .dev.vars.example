@@ -1,0 +1,16 @@
+# 複製為 .dev.vars 後填入實際值。.dev.vars 已被 .gitignore 排除。
+
+# Discord OAuth(Phase 2 需要)
+DISCORD_CLIENT_ID=
+DISCORD_CLIENT_SECRET=
+
+# Auth.js
+AUTH_SECRET=
+
+# Nexon Open API(Phase 5 需要)
+NEXON_API_KEY=
+
+# Drizzle Kit 對 D1 做 push/migrate 時使用
+CLOUDFLARE_ACCOUNT_ID=
+CLOUDFLARE_DATABASE_ID=
+CLOUDFLARE_D1_TOKEN=

@@ -1,0 +1,15 @@
+name = "maple-atelier"
+compatibility_date = "2025-05-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "maple-atelier"
+database_id = "80c7142c-1b3c-4711-b7fa-68c0f7ac0eac"
+migrations_dir = "drizzle"
+
+# 之後做 KV 快取 maplestory.io 結果時開啟
+# [[kv_namespaces]]
+# binding = "MAPLESTORY_CACHE"
+# id = ""
