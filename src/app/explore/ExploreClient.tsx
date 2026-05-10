@@ -272,8 +272,8 @@ export default function ExploreClient({
       </div>
 
       {isLoading || !rows ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
-          {Array.from({ length: 10 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+          {Array.from({ length: 12 }).map((_, i) => (
             <OutfitCardSkeleton key={i} />
           ))}
         </div>
@@ -283,7 +283,7 @@ export default function ExploreClient({
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
             {rows.map((row, i) => (
               <ExploreOutfitCard
                 key={row.id}

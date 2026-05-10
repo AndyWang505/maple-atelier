@@ -8,7 +8,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MilitaryTechIcon from "@mui/icons-material/MilitaryTech";
 import type { SvgIconComponent } from "@mui/icons-material";
 import type { OutfitPayload } from "@/db/schema";
-import { outfitFullUrl } from "@/lib/outfit-preview";
+import { outfitThumbnailUrl } from "@/lib/outfit-preview";
 import LikeButton from "./LikeButton";
 
 interface ExploreOutfitCardProps {
@@ -93,7 +93,7 @@ export default function ExploreOutfitCard({
         <div className="absolute inset-x-0 bottom-0 flex justify-center h-[92%]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={outfitFullUrl(outfit.payload)}
+            src={outfitThumbnailUrl(outfit.payload)}
             alt={outfit.title}
             className="h-full w-auto max-w-none object-contain group-hover:scale-115 transition-transform duration-300 ease-out"
             style={{ imageRendering: "pixelated" }}
