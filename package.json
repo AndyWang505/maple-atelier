@@ -49,5 +49,11 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.90.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.10",
+      "esbuild": ">=0.25.0"
+    }
   }
 }
