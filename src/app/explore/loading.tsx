@@ -1,6 +1,6 @@
 import Skeleton from "@mui/material/Skeleton";
 import PageShell from "@/components/layout/PageShell";
-import OutfitCardSkeleton from "@/components/OutfitCardSkeleton";
+import ExploreOutfitCardSkeleton from "@/components/ExploreOutfitCardSkeleton";
 
 export default function Loading() {
   return (
@@ -33,9 +33,9 @@ export default function Loading() {
             ))}
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <OutfitCardSkeleton key={i} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <ExploreOutfitCardSkeleton key={i} />
           ))}
         </div>
       </div>

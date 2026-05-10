@@ -12,7 +12,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ExploreOutfitCard from "@/components/ExploreOutfitCard";
-import OutfitCardSkeleton from "@/components/OutfitCardSkeleton";
+import ExploreOutfitCardSkeleton from "@/components/ExploreOutfitCardSkeleton";
 import { useApiPublicOutfits } from "@/lib/hooks/use-outfits";
 import { useApiTopTags } from "@/lib/hooks/use-tags";
 import type { PublicOutfitsResponse, TagCount } from "@/lib/api/types";
@@ -274,7 +274,7 @@ export default function ExploreClient({
       {isLoading || !rows ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
           {Array.from({ length: 12 }).map((_, i) => (
-            <OutfitCardSkeleton key={i} />
+            <ExploreOutfitCardSkeleton key={i} />
           ))}
         </div>
       ) : rows.length === 0 ? (
