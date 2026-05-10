@@ -1,12 +1,26 @@
 name = "maple-atelier"
+main = ".open-next/worker.js"
 compatibility_date = "2025-05-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = ".vercel/output/static"
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "maple-atelier"
 database_id = "80c7142c-1b3c-4711-b7fa-68c0f7ac0eac"
+migrations_dir = "drizzle"
+
+# Prod overrides — `wrangler deploy --env production` 會 pick 這段。
+# CF Workers Git deploy 把 `--env production` 寫在「部署命令」內。
+[env.production]
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "maple-atelier-prod"
+database_id = "794c4372-ab74-4dd4-8419-53106496adb3"
 migrations_dir = "drizzle"
 
 # 之後做 KV 快取 maplestory.io 結果時開啟
