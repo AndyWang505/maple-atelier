@@ -15,6 +15,8 @@ interface PreviewOpts {
   animated?: boolean;
   /** 蓋過 payload.stance — 用於詳情頁讓瀏覽者切換姿勢預覽 */
   stance?: string;
+  /** mode=1 時的放大倍率(1=96×96, 2=192×192, 3=288×288) */
+  resize?: number;
 }
 
 const buildUrl = (payload: OutfitPayload, opts: PreviewOpts) => {
@@ -31,13 +33,16 @@ const buildUrl = (payload: OutfitPayload, opts: PreviewOpts) => {
     stance: opts.stance ?? payload.stance,
     frame: opts.animated ? "animated" : 0,
     renderMode: opts.renderMode,
+    resize: opts.resize,
     ...earFlagsForId(payload.slots.ear?.id),
   });
 };
 
-/** 卡片 / carousel 縮圖:固定 96×96 canvas,角色比例一致 */
-export const outfitThumbnailUrl = (payload: OutfitPayload): string =>
-  buildUrl(payload, { renderMode: 1 });
+/** 卡片 / carousel 縮圖:固定 96×96 canvas,角色比例一致。resize 預設 2 = 192×192,大致對齊卡片實際顯示尺寸。 */
+export const outfitThumbnailUrl = (
+  payload: OutfitPayload,
+  opts?: { resize?: number },
+): string => buildUrl(payload, { renderMode: 1, resize: opts?.resize ?? 2 });
 
 /** 詳情頁 / 高保真展示:variable bounding,大裝備不切 */
 export const outfitFullUrl = (

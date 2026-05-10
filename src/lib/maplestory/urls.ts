@@ -42,6 +42,8 @@ export function getCharacterRenderUrl(
     showHighLefEars?: boolean;
     padX?: number;
     padY?: number;
+    /** 1 = 96×96 canvas (mode=1)、2/3 倍放大讓圖更貼近顯示尺寸 */
+    resize?: number;
   },
 ) {
   const skin = opts?.skin ?? DEFAULT_SKIN;
@@ -54,6 +56,7 @@ export function getCharacterRenderUrl(
   const skinVersion = opts?.skinVersion ?? version;
   const padX = opts?.padX ?? DEFAULT_PAD_X;
   const padY = opts?.padY ?? DEFAULT_PAD_Y;
+  const resize = opts?.resize ?? 1;
 
   const skinEntries =
     skin > 0
@@ -76,7 +79,7 @@ export function getCharacterRenderUrl(
     showears: String(opts?.showears ?? false),
     showLefEars: String(opts?.showLefEars ?? false),
     showHighLefEars: String(opts?.showHighLefEars ?? false),
-    resize: "1",
+    resize: String(resize),
     flipX: "false",
     renderMode: String(renderMode),
     padX: String(padX),
