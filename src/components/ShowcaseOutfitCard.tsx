@@ -25,7 +25,7 @@ export default function ShowcaseOutfitCard({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={outfitThumbnailUrl(outfit.payload)}
+        src={outfitThumbnailUrl(outfit.payload, { resize: 3 })}
         alt={outfit.title}
         className="absolute inset-0 w-full h-full object-contain group-hover:scale-115 transition-transform duration-300 ease-out"
         style={{
