@@ -191,7 +191,7 @@ export default function SaveOutfitDialog({
           fullWidth
           required
           label="標題"
-          placeholder="例:夏日海邊 / 武公賽季"
+          placeholder="這套真的沒動過醫美"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           slotProps={{ htmlInput: { maxLength: MAX_TITLE_LEN } }}
@@ -208,8 +208,8 @@ export default function SaveOutfitDialog({
           multiline
           minRows={2}
           maxRows={5}
-          label="描述(可選)"
-          placeholder="這套搭配的靈感、適合場合..."
+          label="描述（可選）"
+          placeholder="自由市場20頻18洞選帥選美快來集合"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           slotProps={{ htmlInput: { maxLength: MAX_DESCRIPTION_LEN } }}
@@ -220,7 +220,7 @@ export default function SaveOutfitDialog({
           fullWidth
           required
           label="標籤"
-          placeholder="武公 點券 可愛"
+          placeholder="時尚 黑暗 可愛"
           value={tagsInput}
           onChange={(e) => setTagsInput(e.target.value)}
           error={error?.field === "tags"}
@@ -240,7 +240,7 @@ export default function SaveOutfitDialog({
         )}
         {suggestions.length > 0 && (
           <div className="mt-3">
-            <p className="text-xs text-zinc-500 mb-1.5">建議標籤(點擊加入)</p>
+            <p className="text-xs text-zinc-500 mb-1.5">建議標籤（點擊加入）</p>
             <div className="flex flex-wrap gap-1">
               {suggestions.map((s) => (
                 <Chip
@@ -264,7 +264,7 @@ export default function SaveOutfitDialog({
               onChange={(e) => setIsPublic(e.target.checked)}
             />
           }
-          label={isPublic ? "公開(其他人可見)" : "私密(僅自己可見)"}
+          label={isPublic ? "公開（其他人可見）" : "私密（僅自己可見）"}
           sx={{ mt: 1 }}
         />
         {error && !error.field && (

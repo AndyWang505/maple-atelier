@@ -184,7 +184,7 @@ export default function ExploreClient({
           <TextField
             size="small"
             fullWidth
-            placeholder="搜尋標題、描述或作者(按 Enter 送出)"
+            placeholder="搜尋標題或作者"
             value={q}
             onChange={(e) => setQ(e.target.value)}
             slotProps={{

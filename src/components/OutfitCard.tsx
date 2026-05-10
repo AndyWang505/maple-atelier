@@ -74,10 +74,20 @@ export default function OutfitCard({
       </div>
 
       {outfit.tags && outfit.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1">
+        <div className="relative flex flex-nowrap gap-1 overflow-hidden">
           {outfit.tags.map((t) => (
-            <Chip key={t} label={`#${t}`} size="small" variant="outlined" sx={tagChipSx} />
+            <Chip
+              key={t}
+              label={`#${t}`}
+              size="small"
+              variant="outlined"
+              sx={{ ...tagChipSx, flexShrink: 0 }}
+            />
           ))}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white"
+          />
         </div>
       )}
 

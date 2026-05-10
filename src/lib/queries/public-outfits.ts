@@ -50,7 +50,6 @@ export async function queryPublicOutfits(
   const searchFilter = q
     ? or(
         like(outfits.title, `%${q}%`),
-        like(outfits.description, `%${q}%`),
         like(authorNameSql, `%${q}%`),
       )
     : undefined;

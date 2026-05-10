@@ -30,31 +30,24 @@ interface ExploreOutfitCardProps {
 }
 
 interface MedalStyle {
-  bg: string;
-  ring: string;
   Icon: SvgIconComponent;
+  iconColor: string;
   label: string;
 }
 
 const MEDAL_STYLES: Record<1 | 2 | 3, MedalStyle> = {
-  1: {
-    bg: "bg-gradient-to-br from-amber-300 to-amber-500",
-    ring: "ring-amber-300/50",
-    Icon: EmojiEventsIcon,
-    label: "金牌",
-  },
-  2: {
-    bg: "bg-gradient-to-br from-zinc-300 to-zinc-400",
-    ring: "ring-zinc-300/50",
-    Icon: WorkspacePremiumIcon,
-    label: "銀牌",
-  },
-  3: {
-    bg: "bg-gradient-to-br from-orange-400 to-orange-600",
-    ring: "ring-orange-400/50",
-    Icon: MilitaryTechIcon,
-    label: "銅牌",
-  },
+  1: { Icon: EmojiEventsIcon, iconColor: "text-amber-500", label: "金牌" },
+  2: { Icon: WorkspacePremiumIcon, iconColor: "text-zinc-500", label: "銀牌" },
+  3: { Icon: MilitaryTechIcon, iconColor: "text-orange-500", label: "銅牌" },
+};
+
+const IMAGE_BG_DEFAULT =
+  "bg-gradient-to-br from-sky-50 via-white to-amber-50/40";
+
+const IMAGE_BG_BY_RANK: Record<1 | 2 | 3, string> = {
+  1: "bg-gradient-to-br from-amber-100 via-amber-50 to-yellow-50/60",
+  2: "bg-gradient-to-br from-slate-200 via-slate-100 to-blue-50/40",
+  3: "bg-gradient-to-br from-orange-100 via-orange-50 to-amber-50/60",
 };
 
 /**
@@ -70,32 +63,32 @@ export default function ExploreOutfitCard({
   const detailHref = `/outfit/${outfit.id}`;
   const authorName = outfit.authorName ?? "(no name)";
   const isMedal = rank === 1 || rank === 2 || rank === 3;
+  const imageBg = isMedal ? IMAGE_BG_BY_RANK[rank] : IMAGE_BG_DEFAULT;
 
   return (
-    <div className="group relative rounded-xl bg-white border border-zinc-200 overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+    <div className="group relative rounded-xl bg-white border border-zinc-200 overflow-hidden hover:shadow-xl hover:shadow-maple-red/15 hover:-translate-y-0.5 transition-all duration-200">
       {isMedal && (() => {
         const medal = MEDAL_STYLES[rank];
         const Icon = medal.Icon;
         return (
-          <div
-            className={`absolute top-2 left-2 z-10 inline-flex items-center justify-center w-9 h-9 rounded-full ${medal.bg} ring-4 ${medal.ring} text-white shadow-md`}
+          <Icon
+            className={`absolute top-2 left-2 z-10 ${medal.iconColor} drop-shadow-md`}
+            style={{ fontSize: 32 }}
             aria-label={`${medal.label} - 第 ${rank} 名`}
-            title={`第 ${rank} 名 · ${medal.label}`}
-          >
-            <Icon style={{ fontSize: 20 }} />
-          </div>
+            titleAccess={`第 ${rank} 名 · ${medal.label}`}
+          />
         );
       })()}
       <Link
         href={detailHref}
-        className="block relative aspect-square overflow-hidden"
+        className={`block relative aspect-square overflow-hidden ${imageBg}`}
         aria-label={`查看 ${outfit.title}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={outfitThumbnailUrl(outfit.payload)}
           alt={outfit.title}
-          className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-300 ease-out"
+          className="absolute inset-0 w-full h-full object-contain"
           style={{ imageRendering: "pixelated" }}
           loading="lazy"
         />
@@ -127,14 +120,14 @@ export default function ExploreOutfitCard({
         </Link>
 
         {outfit.tags && outfit.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className="relative flex flex-nowrap gap-1 overflow-hidden">
             {outfit.tags.slice(0, 3).map((t) => (
               <Chip
                 key={t}
                 label={`#${t}`}
                 size="small"
                 variant="outlined"
-                sx={tagChipSx}
+                sx={{ ...tagChipSx, flexShrink: 0 }}
               />
             ))}
             {outfit.tags.length > 3 && (
@@ -142,10 +135,14 @@ export default function ExploreOutfitCard({
                 label={`+${outfit.tags.length - 3}`}
                 size="small"
                 variant="outlined"
-                sx={{ ...tagChipSx, opacity: 0.6 }}
+                sx={{ ...tagChipSx, flexShrink: 0, opacity: 0.6 }}
                 title={outfit.tags.slice(3).map((t) => `#${t}`).join(" ")}
               />
             )}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white"
+            />
           </div>
         )}
 

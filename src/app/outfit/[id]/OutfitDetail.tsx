@@ -227,7 +227,7 @@ export default function OutfitDetail({
       </div>
 
       {outfit.description && (
-        <p className="text-sm text-zinc-700 whitespace-pre-wrap">
+        <p className="text-base leading-relaxed text-zinc-700 whitespace-pre-wrap">
           {outfit.description}
         </p>
       )}

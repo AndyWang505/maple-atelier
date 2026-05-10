@@ -4,7 +4,7 @@ export const OUTFIT_LIMITS = {
   titleLen: 16,
   descriptionLen: 200,
   maxTags: 3,
-  tagLen: 8,
+  tagLen: 6,
 } as const;
 
 export const DISPLAY_NAME_MAX_LEN = 24;
