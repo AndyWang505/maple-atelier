@@ -106,12 +106,12 @@ export default function ExploreOutfitCard({
           className="block min-w-0 no-underline text-current hover:opacity-80 transition"
         >
           <h3
-            className="text-sm font-semibold truncate text-zinc-900 leading-snug"
+            className="mt-0 mb-2 text-sm font-semibold truncate text-zinc-900 leading-snug"
             title={outfit.title}
           >
             {outfit.title}
           </h3>
-          <div className="mt-1.5 flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-1.5 min-w-0">
             <Avatar
               src={outfit.authorImage ?? undefined}
               alt={authorName}
