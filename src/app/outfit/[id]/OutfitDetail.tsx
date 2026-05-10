@@ -208,8 +208,8 @@ export default function OutfitDetail({
             title={getLikeTooltip({ isOwnOutfit, isAuthenticated, liked })}
             className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full border font-semibold transition ${
               liked
-                ? "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100"
-                : "bg-white border-zinc-300 text-zinc-700 hover:border-rose-300 hover:text-rose-500"
+                ? "bg-maple-red/10 border-maple-red/30 text-maple-red hover:bg-maple-red/15"
+                : "bg-white border-zinc-300 text-zinc-700 hover:border-maple-red/40 hover:text-maple-red"
             } ${
               isOwnOutfit
                 ? "cursor-not-allowed opacity-60 hover:bg-white hover:border-zinc-300 hover:text-zinc-700"

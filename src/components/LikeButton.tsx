@@ -37,14 +37,18 @@ export default function LikeButton({
   const tooltip = getLikeTooltip({ isOwnOutfit, isAuthenticated, liked });
 
   return (
-    <div className="flex items-center gap-1 text-xs">
+    <div
+      className={`flex items-center gap-1 text-xs transition-colors ${
+        liked ? "text-maple-red" : "text-zinc-500"
+      }`}
+    >
       <IconButton
         size="small"
         onClick={() => void toggle()}
         disabled={isOwnOutfit || pending}
         aria-label={liked ? "取消推" : "推"}
         title={tooltip}
-        sx={{ color: liked ? "#ef4444" : undefined }}
+        sx={{ color: "inherit" }}
       >
         {liked ? (
           <FavoriteIcon fontSize="small" />

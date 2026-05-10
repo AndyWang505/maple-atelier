@@ -140,10 +140,10 @@ export default function MyOutfitsList({ fallback }: Props) {
             actions={
               <>
                 <div
-                  className="flex items-center gap-1.5 text-sm font-semibold text-zinc-700"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-maple-red"
                   title="他人在公開瀏覽時推的數量"
                 >
-                  <FavoriteIcon fontSize="small" sx={{ color: "#ef4444" }} />
+                  <FavoriteIcon fontSize="small" sx={{ color: "inherit" }} />
                   <span className="tabular-nums">{row.upvotes}</span>
                 </div>
                 <div className="flex items-center justify-between gap-2 text-xs">
