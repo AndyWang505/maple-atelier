@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import { fetchItemsBySlot } from "@/lib/maplestory";
 import {
   filterByGender,
@@ -23,6 +24,8 @@ type Catalog = Partial<Record<Slot, SlotCache>>;
 
 const DEFAULT_STANCE = "stand1";
 const DEFAULT_ANIMATED = false;
+const PERSIST_KEY = "maple-atelier-simulator";
+const PERSIST_VERSION = 1;
 
 interface SimulatorState {
   equipped: Equipped;
@@ -53,153 +56,169 @@ interface SimulatorState {
   loadOutfit: (payload: OutfitPayload) => void;
 }
 
-export const useSimulator = create<SimulatorState>((set, get) => ({
-  equipped: {},
-  catalog: {},
-  gender: "male",
-  stanceId: DEFAULT_STANCE,
-  animated: DEFAULT_ANIMATED,
-  generation: 0,
-
-  equip: (item) =>
-    set((state) => {
-      const next: Equipped = { ...state.equipped, [item.slot]: item };
-      // 套服(overall)會蓋掉 coat + pants;反之亦然
-      if (item.slot === "overall") {
-        delete next.coat;
-        delete next.pants;
-      } else if (item.slot === "coat" || item.slot === "pants") {
-        delete next.overall;
-      }
-      return { equipped: next };
-    }),
-
-  unequip: (slot) =>
-    set((state) => {
-      const next = { ...state.equipped };
-      delete next[slot];
-      return { equipped: next };
-    }),
-
-  reset: () =>
-    set((state) => ({
+export const useSimulator = create<SimulatorState>()(
+  persist(
+    (set, get) => ({
       equipped: {},
+      catalog: {},
+      gender: "male",
       stanceId: DEFAULT_STANCE,
       animated: DEFAULT_ANIMATED,
-      generation: state.generation + 1,
-    })),
+      generation: 0,
 
-  randomize: () => {
-    // 已快取的 slot 直接同步抽完一次寫入(避免 N 個分散 set 觸發 N 次 re-render);
-    // 未快取的交給 loadSlot 走 fetch + 隨機路徑
-    const state = get();
-    const slots = pickRandomSlotSet();
-    const equipped: Equipped = {};
-    const slotsToFetch: Slot[] = [];
-    for (const slot of slots) {
-      const cache = state.catalog[slot];
-      if (cache?.status === "success") {
-        const item = pickRandom(filterByGender(cache.items, slot, state.gender));
-        if (item) equipped[slot] = item;
-      } else {
-        slotsToFetch.push(slot);
-      }
-    }
-    set({ equipped, generation: state.generation + 1 });
-    for (const slot of slotsToFetch) {
-      void get().loadSlot(slot, { randomize: true });
-    }
-  },
+      equip: (item) =>
+        set((state) => {
+          const next: Equipped = { ...state.equipped, [item.slot]: item };
+          // 套服(overall)會蓋掉 coat + pants;反之亦然
+          if (item.slot === "overall") {
+            delete next.coat;
+            delete next.pants;
+          } else if (item.slot === "coat" || item.slot === "pants") {
+            delete next.overall;
+          }
+          return { equipped: next };
+        }),
 
-  setGender: (gender) =>
-    set((state) => ({
-      gender,
-      equipped: {},
-      stanceId: DEFAULT_STANCE,
-      animated: DEFAULT_ANIMATED,
-      generation: state.generation + 1,
-    })),
+      unequip: (slot) =>
+        set((state) => {
+          const next = { ...state.equipped };
+          delete next[slot];
+          return { equipped: next };
+        }),
 
-  setStanceId: (id) => set({ stanceId: id }),
-  setAnimated: (animated) => set({ animated }),
+      reset: () =>
+        set((state) => ({
+          equipped: {},
+          stanceId: DEFAULT_STANCE,
+          animated: DEFAULT_ANIMATED,
+          generation: state.generation + 1,
+        })),
 
-  loadOutfit: (payload) => {
-    // payload 只有 id 與 region/version,用快取補回 CatalogItem 完整欄位;沒快取的等
-    // 之後 ItemPicker 切到那 slot 時 loadSlot 會帶資料,先放 stub(name 暫顯 id)
-    const state = get();
-    const equipped: Equipped = {};
-    for (const slot of SLOTS) {
-      const ref = payload.slots[slot];
-      if (!ref) continue;
-      const cache = state.catalog[slot];
-      const cached = cache?.items.find((i) => i.id === ref.id);
-      equipped[slot] = cached ?? {
-        id: ref.id,
-        name: `#${ref.id}`,
-        slot,
-        isCash: false,
-        requiredGender: 2,
-        region: ref.region,
-        version: ref.version,
-      };
-    }
-    set((state) => ({
-      equipped,
-      stanceId: payload.stance,
-      animated: payload.animated,
-      generation: state.generation + 1,
-    }));
-  },
-
-  loadSlot: async (slot, options = {}) => {
-    const { randomize = false } = options;
-    const startGen = get().generation;
-    const cached = get().catalog[slot];
-
-    if (cached?.status === "loading") return;
-    if (cached?.status === "success") {
-      if (randomize) {
-        const item = pickRandom(filterByGender(cached.items, slot, get().gender));
-        if (item) tryWriteRandomized(set, slot, item, startGen);
-      }
-      return;
-    }
-
-    set((state) => ({
-      catalog: { ...state.catalog, [slot]: { status: "loading", items: [] } },
-    }));
-
-    try {
-      const items = await fetchItemsBySlot(slot);
-      set((state) => {
-        let nextEquipped = state.equipped;
-        if (
-          randomize &&
-          state.generation === startGen &&
-          !state.equipped[slot]
-        ) {
-          const random = pickRandom(filterByGender(items, slot, state.gender));
-          if (random) nextEquipped = { ...state.equipped, [slot]: random };
+      randomize: () => {
+        // 已快取的 slot 直接同步抽完一次寫入(避免 N 個分散 set 觸發 N 次 re-render);
+        // 未快取的交給 loadSlot 走 fetch + 隨機路徑
+        const state = get();
+        const slots = pickRandomSlotSet();
+        const equipped: Equipped = {};
+        const slotsToFetch: Slot[] = [];
+        for (const slot of slots) {
+          const cache = state.catalog[slot];
+          if (cache?.status === "success") {
+            const item = pickRandom(filterByGender(cache.items, slot, state.gender));
+            if (item) equipped[slot] = item;
+          } else {
+            slotsToFetch.push(slot);
+          }
         }
-        return {
-          catalog: { ...state.catalog, [slot]: { status: "success", items } },
-          equipped: nextEquipped,
-        };
-      });
-    } catch (err) {
-      set((state) => ({
-        catalog: {
-          ...state.catalog,
-          [slot]: {
-            status: "error",
-            items: [],
-            error: err instanceof Error ? err.message : "fetch failed",
-          },
-        },
-      }));
-    }
-  },
-}));
+        set({ equipped, generation: state.generation + 1 });
+        for (const slot of slotsToFetch) {
+          void get().loadSlot(slot, { randomize: true });
+        }
+      },
+
+      setGender: (gender) =>
+        set((state) => ({
+          gender,
+          equipped: {},
+          stanceId: DEFAULT_STANCE,
+          animated: DEFAULT_ANIMATED,
+          generation: state.generation + 1,
+        })),
+
+      setStanceId: (id) => set({ stanceId: id }),
+      setAnimated: (animated) => set({ animated }),
+
+      loadOutfit: (payload) => {
+        // payload 只有 id 與 region/version,用快取補回 CatalogItem 完整欄位;沒快取的等
+        // 之後 ItemPicker 切到那 slot 時 loadSlot 會帶資料,先放 stub(name 暫顯 id)
+        const state = get();
+        const equipped: Equipped = {};
+        for (const slot of SLOTS) {
+          const ref = payload.slots[slot];
+          if (!ref) continue;
+          const cache = state.catalog[slot];
+          const cached = cache?.items.find((i) => i.id === ref.id);
+          equipped[slot] = cached ?? {
+            id: ref.id,
+            name: `#${ref.id}`,
+            slot,
+            isCash: false,
+            requiredGender: 2,
+            region: ref.region,
+            version: ref.version,
+          };
+        }
+        set((state) => ({
+          equipped,
+          stanceId: payload.stance,
+          animated: payload.animated,
+          generation: state.generation + 1,
+        }));
+      },
+
+      loadSlot: async (slot, options = {}) => {
+        const { randomize = false } = options;
+        const startGen = get().generation;
+        const cached = get().catalog[slot];
+
+        if (cached?.status === "loading") return;
+        if (cached?.status === "success") {
+          if (randomize) {
+            const item = pickRandom(filterByGender(cached.items, slot, get().gender));
+            if (item) tryWriteRandomized(set, slot, item, startGen);
+          }
+          return;
+        }
+
+        set((state) => ({
+          catalog: { ...state.catalog, [slot]: { status: "loading", items: [] } },
+        }));
+
+        try {
+          const items = await fetchItemsBySlot(slot);
+          set((state) => {
+            let nextEquipped = state.equipped;
+            if (
+              randomize &&
+              state.generation === startGen &&
+              !state.equipped[slot]
+            ) {
+              const random = pickRandom(filterByGender(items, slot, state.gender));
+              if (random) nextEquipped = { ...state.equipped, [slot]: random };
+            }
+            return {
+              catalog: { ...state.catalog, [slot]: { status: "success", items } },
+              equipped: nextEquipped,
+            };
+          });
+        } catch (err) {
+          set((state) => ({
+            catalog: {
+              ...state.catalog,
+              [slot]: {
+                status: "error",
+                items: [],
+                error: err instanceof Error ? err.message : "fetch failed",
+              },
+            },
+          }));
+        }
+      },
+    }),
+    {
+      name: PERSIST_KEY,
+      version: PERSIST_VERSION,
+      storage: createJSONStorage(() => localStorage),
+      // 只 persist 使用者搭配狀態 — catalog(slot items)太大且易變,generation 是 in-flight race 用,actions 是函式不能序列化
+      partialize: (state) => ({
+        equipped: state.equipped,
+        gender: state.gender,
+        stanceId: state.stanceId,
+        animated: state.animated,
+      }),
+    },
+  ),
+);
 
 /** 寫入「隨機抽到的 item」前再驗一次:期間沒被另一輪清空、且該 slot 還沒被搶先寫上 */
 function tryWriteRandomized(
