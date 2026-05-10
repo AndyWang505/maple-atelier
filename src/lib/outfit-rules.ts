@@ -1,4 +1,31 @@
+import type { OutfitPayload } from "@/db/schema";
 import type { CatalogItem, Gender, Slot } from "@/types/maplestory";
+
+/** 第一次進模擬器 / 切換性別時載入,讓使用者看到「成形」起點而非裸體或隨機。 */
+export const DEFAULT_OUTFIT_PAYLOAD: Record<Gender, OutfitPayload> = {
+  male: {
+    slots: {
+      hair: { id: 30000 },
+      face: { id: 20000 },
+      skin: { id: 2000 },
+      coat: { id: 1040036 },
+      pants: { id: 1060026 },
+    },
+    stance: "stand1",
+    animated: false,
+  },
+  female: {
+    slots: {
+      hair: { id: 31000 },
+      face: { id: 21000 },
+      skin: { id: 2000 },
+      coat: { id: 1040036 },
+      pants: { id: 1060026 },
+    },
+    stance: "stand1",
+    animated: false,
+  },
+};
 
 /** 必裝 slot — 角色基本身體要件,隨機初始化必出 */
 export const MANDATORY_SLOTS: ReadonlyArray<Slot> = ["hair", "face", "skin"];

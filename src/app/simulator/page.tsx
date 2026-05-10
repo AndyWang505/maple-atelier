@@ -105,13 +105,13 @@ function Dot({ pos, cls }: DotSpec) {
 export default function SimulatorPage() {
   const initOnce = useRef(false);
 
-  // Rehydrate persist 後若仍無裝備才 randomize — 保留 loadOutfit 已帶入或 persist 還原的搭配
+  // Rehydrate persist 後若仍無裝備才載入預設 — 保留 loadOutfit 已帶入或 persist 還原的搭配
   useEffect(() => {
     if (initOnce.current) return;
     initOnce.current = true;
     void useSimulator.persist.rehydrate()?.then(() => {
-      const { equipped, randomize } = useSimulator.getState();
-      if (Object.keys(equipped).length === 0) randomize();
+      const { equipped, loadDefault } = useSimulator.getState();
+      if (Object.keys(equipped).length === 0) loadDefault();
     });
   }, []);
 

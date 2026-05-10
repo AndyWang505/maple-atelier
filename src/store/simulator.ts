@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { fetchItemsBySlot } from "@/lib/maplestory";
 import {
+  DEFAULT_OUTFIT_PAYLOAD,
   filterByGender,
   pickRandom,
   pickRandomSlotSet,
@@ -45,13 +46,15 @@ interface SimulatorState {
   reset: () => void;
   /** 必裝身體三件 + 選裝 8 件各 50% + (上衣+褲子) vs 套服 二擇一 */
   randomize: () => void;
-  /** 切換性別會連帶清空裝備並還原 stance / animated */
+  /** 切換性別會連帶載入該性別的預設搭配,而不是清空 */
   setGender: (gender: Gender) => void;
   setStanceId: (id: string) => void;
   setAnimated: (animated: boolean) => void;
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
   /** 把 DB 取回的 OutfitPayload 還原成 store 狀態 */
   loadOutfit: (payload: OutfitPayload) => void;
+  /** 載入當前性別的預設搭配(初始 / 切換性別 / 重置時用) */
+  loadDefault: () => void;
 }
 
 export const useSimulator = create<SimulatorState>()(
@@ -114,14 +117,11 @@ export const useSimulator = create<SimulatorState>()(
         }
       },
 
-      setGender: (gender) =>
-        set((state) => ({
-          gender,
-          equipped: {},
-          stanceId: DEFAULT_STANCE,
-          animated: DEFAULT_ANIMATED,
-          generation: state.generation + 1,
-        })),
+      setGender: (gender) => {
+        if (get().gender === gender) return;
+        set({ gender });
+        get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD[gender]);
+      },
 
       setStanceId: (id) => {
         if (get().stanceId === id) return;
@@ -157,6 +157,10 @@ export const useSimulator = create<SimulatorState>()(
           animated: payload.animated,
           generation: state.generation + 1,
         }));
+      },
+
+      loadDefault: () => {
+        get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD[get().gender]);
       },
 
       loadSlot: async (slot, options = {}) => {
