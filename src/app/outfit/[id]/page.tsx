@@ -17,7 +17,6 @@ import PageShell from "@/components/layout/PageShell";
 import { authorNameSql } from "@/lib/queries/utils";
 import OutfitDetail from "./OutfitDetail";
 
-export const runtime = "edge";
 
 interface OutfitPageProps {
   params: Promise<{ id: string }>;

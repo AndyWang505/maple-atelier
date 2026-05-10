@@ -9,7 +9,6 @@ import {
 import { queryTopTags } from "@/lib/queries/top-tags";
 import ExploreClient, { EXPLORE_PAGE_SIZE } from "./ExploreClient";
 
-export const runtime = "edge";
 
 interface ExplorePageProps {
   searchParams: Promise<{

@@ -4,7 +4,6 @@ import { getDb } from "@/db/client";
 import { outfits } from "@/db/schema";
 import { outfitFullUrl } from "@/lib/outfit-preview";
 
-export const runtime = "edge";
 export const alt = "Outfit on Maple Atelier";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";

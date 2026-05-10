@@ -8,7 +8,6 @@ import { toWireRow } from "@/lib/queries/utils";
 import MyOutfitsList from "./MyOutfitsList";
 import ProfileCard from "./ProfileCard";
 
-export const runtime = "edge";
 
 export default async function MePage() {
   const session = await auth();

@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
-export const runtime = "edge";
 
 const ALLOWED_HOST = "maplestory.io";
 const UPSTREAM_TIMEOUT_MS = 10_000;

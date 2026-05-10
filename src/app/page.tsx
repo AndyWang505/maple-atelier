@@ -18,7 +18,6 @@ import RevealOnScroll from "@/components/RevealOnScroll";
 import PageShell from "@/components/layout/PageShell";
 import { SITE_NAME_TC } from "@/lib/site-config";
 
-export const runtime = "edge";
 export const revalidate = 30;
 
 const HOT_LIMIT = 12;

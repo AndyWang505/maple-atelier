@@ -5,7 +5,6 @@ import { getDb } from "@/db/client";
 import { outfits, votes } from "@/db/schema";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 interface VoteBody {
   liked?: boolean;

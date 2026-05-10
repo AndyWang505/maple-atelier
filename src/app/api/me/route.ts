@@ -5,7 +5,6 @@ import { getDb } from "@/db/client";
 import { outfits, users, votes } from "@/db/schema";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 export async function DELETE() {
   const session = await auth();
