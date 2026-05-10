@@ -5,7 +5,6 @@ import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
 import BrushOutlinedIcon from "@mui/icons-material/BrushOutlined";
 import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { getDb } from "@/db/client";
 import { outfits, users } from "@/db/schema";
@@ -16,6 +15,7 @@ import ShowcaseOutfitCard from "@/components/ShowcaseOutfitCard";
 import HomeTagCloud from "@/components/HomeTagCloud";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import PageShell from "@/components/layout/PageShell";
+import ArrowLink from "@/components/ui/ArrowLink";
 import { SITE_NAME_TC } from "@/lib/site-config";
 
 export const revalidate = 30;
@@ -313,13 +313,9 @@ function SectionHeader({
           </h2>
         </div>
         {link && (
-          <Link
-            href={link.href}
-            className="inline-flex items-center gap-1 text-sm font-medium text-maple-red hover:underline shrink-0"
-          >
+          <ArrowLink href={link.href} className="shrink-0">
             {link.label}
-            <ArrowForwardIcon style={{ fontSize: 16 }} />
-          </Link>
+          </ArrowLink>
         )}
       </div>
       {subtitle && (

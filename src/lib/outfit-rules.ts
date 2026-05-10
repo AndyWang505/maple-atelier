@@ -1,7 +1,6 @@
 import type { OutfitPayload } from "@/db/schema";
 import type { CatalogItem, Gender, Slot } from "@/types/maplestory";
 
-/** 第一次進模擬器 / 切換性別時載入,讓使用者看到「成形」起點而非裸體或隨機。 */
 export const DEFAULT_OUTFIT_PAYLOAD: Record<Gender, OutfitPayload> = {
   male: {
     slots: {

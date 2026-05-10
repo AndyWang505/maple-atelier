@@ -10,6 +10,7 @@ import PrivacyTipOutlinedIcon from "@mui/icons-material/PrivacyTipOutlined";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import type { SvgIconComponent } from "@mui/icons-material";
 import PageShell from "@/components/layout/PageShell";
+import ArrowLink from "@/components/ui/ArrowLink";
 import { SITE_LINKS, SITE_NAME, SITE_NAME_TC } from "@/lib/site-config";
 
 export const metadata: Metadata = {
@@ -243,14 +244,10 @@ export default function AboutPage() {
         </a>
       </AboutSection>
 
-      {/* 回首頁 */}
       <div className="text-center pt-4">
-        <Link
-          href="/"
-          className="text-sm text-zinc-500 hover:text-maple-red hover:underline"
-        >
-          ← 回首頁
-        </Link>
+        <ArrowLink href="/" direction="back" tone="muted">
+          回首頁
+        </ArrowLink>
       </div>
     </PageShell>
   );
