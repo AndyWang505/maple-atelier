@@ -12,13 +12,7 @@ interface ImageProps {
   params: Promise<{ id: string }>;
 }
 
-/**
- * 單一搭配的動態 OG。社群分享時長這樣:
- *   左:角色預覽圖(maplestory.io 渲染,server-fetch 編進 PNG)
- *   右:標題 / 推數 / 品牌 watermark(英文 + 數字 + emoji,避免 CJK 字型問題)
- *
- * 私密 / 不存在的 outfit fallback 到泛用品牌圖,避免社群 bot 拿到 404。
- */
+// 私密 / 不存在的 outfit fallback 到泛用品牌圖,避免社群 bot 拿到 404。
 export default async function Image({ params }: ImageProps) {
   const { id: rawId } = await params;
   const id = Number(rawId);
@@ -47,13 +41,50 @@ export default async function Image({ params }: ImageProps) {
           height: "100%",
           display: "flex",
           background:
-            "linear-gradient(135deg, rgba(254,215,170,0.5) 0%, #ffffff 50%, rgba(252,165,165,0.4) 100%)",
+            "linear-gradient(135deg, #0c0a09 0%, #18181b 50%, #0c0a09 100%)",
           fontFamily: "system-ui, sans-serif",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        {/* 左半:角色 */}
         <div
           style={{
+            position: "absolute",
+            top: -160,
+            left: -160,
+            width: 480,
+            height: 480,
+            borderRadius: "50%",
+            background: "rgba(200, 66, 61, 0.45)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -180,
+            right: -180,
+            width: 520,
+            height: 520,
+            borderRadius: "50%",
+            background: "rgba(232, 122, 79, 0.4)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: 0.08,
+            backgroundImage:
+              "radial-gradient(circle, #ffffff 1.25px, transparent 1.25px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
             flex: 1,
             display: "flex",
             alignItems: "flex-end",
@@ -74,9 +105,9 @@ export default async function Image({ params }: ImageProps) {
           />
         </div>
 
-        {/* 右半:資訊 */}
         <div
           style={{
+            position: "relative",
             flex: 1,
             display: "flex",
             flexDirection: "column",
@@ -84,16 +115,27 @@ export default async function Image({ params }: ImageProps) {
             padding: "60px 80px 60px 40px",
           }}
         >
-          <div style={{ fontSize: 28, color: "#c8423d", fontWeight: 700, display: "flex" }}>
+          <div
+            style={{
+              fontSize: 32,
+              fontWeight: 700,
+              display: "flex",
+              backgroundImage:
+                "linear-gradient(90deg, #c8423d 0%, #e87a4f 100%)",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
             🍁 Maple Atelier
           </div>
           <div
             style={{
-              fontSize: 64,
+              fontSize: 72,
               fontWeight: 800,
-              color: "#1a1a1a",
-              marginTop: 24,
+              color: "#f4f4f5",
+              marginTop: 28,
               lineHeight: 1.15,
+              letterSpacing: "-1.5px",
               display: "flex",
               maxWidth: 520,
               overflow: "hidden",
@@ -105,15 +147,15 @@ export default async function Image({ params }: ImageProps) {
           <div
             style={{
               fontSize: 36,
-              color: "#52525b",
-              marginTop: 32,
+              color: "#a1a1aa",
+              marginTop: 36,
               display: "flex",
               alignItems: "center",
               gap: 16,
             }}
           >
-            <span style={{ display: "flex" }}>❤ {row.upvotes}</span>
-            <span style={{ display: "flex", color: "#a1a1aa" }}>·</span>
+            <span style={{ display: "flex", color: "#e87a4f" }}>❤ {row.upvotes}</span>
+            <span style={{ display: "flex", color: "#52525b" }}>·</span>
             <span style={{ display: "flex" }}>#{id}</span>
           </div>
         </div>
@@ -131,25 +173,74 @@ function brandFallback() {
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background:
-            "linear-gradient(180deg, rgba(254,215,170,0.55) 0%, #ffffff 35%, #ffffff 65%, rgba(252,165,165,0.45) 100%)",
+            "linear-gradient(135deg, #0c0a09 0%, #18181b 50%, #0c0a09 100%)",
           fontFamily: "system-ui, sans-serif",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <div style={{ fontSize: 160, display: "flex" }}>🍁</div>
         <div
           style={{
-            fontSize: 96,
-            fontWeight: 800,
-            color: "#c8423d",
-            marginTop: 24,
+            position: "absolute",
+            top: -160,
+            left: -160,
+            width: 520,
+            height: 520,
+            borderRadius: "50%",
+            background: "rgba(200, 66, 61, 0.5)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: -180,
+            right: -180,
+            width: 560,
+            height: 560,
+            borderRadius: "50%",
+            background: "rgba(232, 122, 79, 0.45)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            opacity: 0.1,
+            backgroundImage:
+              "radial-gradient(circle, #ffffff 1.25px, transparent 1.25px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div
+          style={{
+            position: "relative",
             display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
           }}
         >
-          Maple Atelier
+          <div style={{ fontSize: 144, display: "flex" }}>🍁</div>
+          <div
+            style={{
+              fontSize: 120,
+              fontWeight: 800,
+              letterSpacing: "-3px",
+              lineHeight: 1,
+              marginTop: 24,
+              display: "flex",
+              backgroundImage:
+                "linear-gradient(90deg, #c8423d 0%, #e87a4f 50%, #fcd34d 100%)",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            Maple Atelier
+          </div>
         </div>
       </div>
     ),
