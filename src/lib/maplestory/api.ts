@@ -5,7 +5,9 @@ import type {
   Slot,
 } from "@/types/maplestory";
 import { SLOT_FILTERS, buildItemUrl } from "./filters";
+import { STATIC_EAR_ITEMS } from "./static-ears";
 import { STATIC_ITEMS_BY_SLOT } from "./static-items";
+import { STATIC_SKIN_ITEMS } from "./static-skins";
 
 interface RawItem {
   id: number;
@@ -23,6 +25,22 @@ export interface ItemInfo {
  * 撈單一 item 的基本 metadata(name + isCash)。
  * 用於 detail 頁的裝備明細顯示。失敗 / timeout 時回 null,呼叫端 fallback 顯示 #id 不掛 cash 標籤。
  */
+export async function fetchSlotItemInfo(
+  slot: Slot,
+  id: number,
+  opts?: MaplestoryClientOptions,
+): Promise<ItemInfo | null> {
+  if (slot === "skin") {
+    const found = STATIC_SKIN_ITEMS.find((s) => s.id === id);
+    return found ? { name: found.name, isCash: false } : null;
+  }
+  if (slot === "ear") {
+    const found = STATIC_EAR_ITEMS.find((e) => e.id === id);
+    return found ? { name: found.name, isCash: false } : null;
+  }
+  return fetchItemInfo(id, opts);
+}
+
 export async function fetchItemInfo(
   id: number,
   opts?: MaplestoryClientOptions,

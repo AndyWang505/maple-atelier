@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { fetchItemsBySlot } from "@/lib/maplestory";
+import { fetchItemsBySlot, fetchSlotItemInfo } from "@/lib/maplestory";
 import {
   DEFAULT_OUTFIT_PAYLOAD,
   filterByGender,
@@ -10,6 +10,9 @@ import {
 import type { OutfitPayload } from "@/db/schema";
 import type { CatalogItem, Gender, Slot } from "@/types/maplestory";
 import { SLOTS } from "@/types/maplestory";
+
+/** stub item 的 sentinel:`name === "#" + id` 表示這是 loadOutfit 留下還沒升級成真名的占位 */
+const isStub = (item: CatalogItem) => item.name === `#${item.id}`;
 
 export type { Gender };
 
@@ -153,10 +156,7 @@ export const useSimulator = create<SimulatorState>()(
           animated: payload.animated,
           generation: state.generation + 1,
         }));
-        // Eager fetch 已裝備 slot 的 catalog,讓 stub `#id` 立刻被升級成真名
-        for (const slot of SLOTS) {
-          if (equipped[slot]) void get().loadSlot(slot);
-        }
+        void upgradeStubNames(set, get, equipped);
       },
 
       loadDefault: () => {
@@ -185,9 +185,8 @@ export const useSimulator = create<SimulatorState>()(
           const items = await fetchItemsBySlot(slot);
           set((state) => {
             let nextEquipped = state.equipped;
-            // 升級 loadOutfit 留下的 stub(name = `#id`)為真實 CatalogItem
             const current = nextEquipped[slot];
-            if (current && current.name === `#${current.id}`) {
+            if (current && isStub(current)) {
               const real = items.find((i) => i.id === current.id);
               if (real) nextEquipped = { ...nextEquipped, [slot]: real };
             }
@@ -245,5 +244,47 @@ function tryWriteRandomized(
   set((state) => {
     if (state.generation !== startGen || state.equipped[slot]) return {};
     return { equipped: { ...state.equipped, [slot]: item } };
+  });
+}
+
+type StubLookup = { slot: Slot; id: number; name: string; isCash: boolean };
+
+/** 用單筆 /item/{id} 端點 (~1KB / 筆) 升級 stub,而不是整個 catalog dump (100KB-2MB / slot)。 */
+async function upgradeStubNames(
+  set: (fn: (state: SimulatorState) => Partial<SimulatorState>) => void,
+  get: () => SimulatorState,
+  equipped: Equipped,
+): Promise<void> {
+  const stubs = (Object.entries(equipped) as [Slot, CatalogItem][]).filter(
+    ([, item]) => isStub(item),
+  );
+  if (stubs.length === 0) return;
+
+  const startGen = get().generation;
+  const results = await Promise.all(
+    stubs.map(async ([slot, item]): Promise<StubLookup | null> => {
+      const info = await fetchSlotItemInfo(slot, item.id, {
+        region: item.region,
+        version: item.version,
+      });
+      return info
+        ? { slot, id: item.id, name: info.name, isCash: info.isCash }
+        : null;
+    }),
+  );
+  const updates = results.filter((r): r is StubLookup => r !== null);
+  if (updates.length === 0) return;
+
+  set((state) => {
+    // 期間 reset / 切性別 / 載入別套 → 整批 generation 失效,丟棄
+    if (state.generation !== startGen) return {};
+    const next = { ...state.equipped };
+    for (const u of updates) {
+      const current = next[u.slot];
+      // per-slot race-check:使用者可能在同 generation 內 equip 別的 item
+      if (!current || current.id !== u.id || !isStub(current)) continue;
+      next[u.slot] = { ...current, name: u.name, isCash: u.isCash };
+    }
+    return { equipped: next };
   });
 }

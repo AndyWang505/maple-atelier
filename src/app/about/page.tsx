@@ -78,9 +78,6 @@ export default function AboutPage() {
         <p>
           Maple Atelier 嘗試以現代網頁技術重新實作一套搭配工具，並且在試穿功能之外延伸出儲存、分享、社群瀏覽等能力，讓楓谷時裝文化能以新的形式延續。
         </p>
-        <p className="text-zinc-500 text-sm">
-          本站致敬「透視鏡」，以及所有讓楓谷時裝文化持續發展的玩家。
-        </p>
       </AboutSection>
 
       {/* 3. FAQ */}

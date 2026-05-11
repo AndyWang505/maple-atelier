@@ -9,10 +9,8 @@ import {
   users,
   votes,
 } from "@/db/schema";
-import { fetchItemInfo, type ItemInfo } from "@/lib/maplestory";
+import { fetchSlotItemInfo, type ItemInfo } from "@/lib/maplestory";
 import type { Slot } from "@/types/maplestory";
-import { STATIC_EAR_ITEMS } from "@/lib/maplestory/static-ears";
-import { STATIC_SKIN_ITEMS } from "@/lib/maplestory/static-skins";
 import PageShell from "@/components/layout/PageShell";
 import { authorNameSql } from "@/lib/queries/utils";
 import OutfitDetail from "./OutfitDetail";
@@ -31,15 +29,7 @@ async function fetchItemInfoForPayload(
   const lookups = (Object.entries(payload.slots) as [Slot, OutfitSlotRef][])
     .filter(([, ref]) => ref !== undefined)
     .map(async ([slot, ref]): Promise<readonly [number, ItemInfo] | null> => {
-      if (slot === "skin") {
-        const item = STATIC_SKIN_ITEMS.find((s) => s.id === ref.id);
-        return item ? [ref.id, { name: item.name, isCash: false }] : null;
-      }
-      if (slot === "ear") {
-        const item = STATIC_EAR_ITEMS.find((e) => e.id === ref.id);
-        return item ? [ref.id, { name: item.name, isCash: false }] : null;
-      }
-      const info = await fetchItemInfo(ref.id, {
+      const info = await fetchSlotItemInfo(slot, ref.id, {
         region: ref.region,
         version: ref.version,
       });
