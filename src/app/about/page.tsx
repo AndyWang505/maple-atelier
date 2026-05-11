@@ -14,7 +14,7 @@ import ArrowLink from "@/components/ui/ArrowLink";
 import { SITE_LINKS, SITE_NAME, SITE_NAME_TC } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: `關於 | ${SITE_NAME}`,
+  title: "關於",
   description: `${SITE_NAME} ${SITE_NAME_TC} — 製作動機、常見問題、聯絡方式與支持管道`,
 };
 

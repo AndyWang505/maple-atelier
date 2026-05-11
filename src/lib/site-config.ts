@@ -6,6 +6,8 @@ import type { SvgIconComponent } from "@mui/icons-material";
 export const SITE_NAME = "Maple Atelier";
 export const SITE_NAME_TC = "楓葉工坊";
 
+export const SITE_URL = "https://maple-atelier.org";
+
 export const SITE_LINKS = {
   github: "https://github.com/AndyWang505/maple-atelier",
   email: "andywang890505@gmail.com",

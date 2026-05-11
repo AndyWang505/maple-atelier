@@ -5,16 +5,40 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ToastProvider from "@/components/ToastProvider";
 import SWRProvider from "@/components/SWRProvider";
-import { SITE_NAME, SITE_NAME_TC } from "@/lib/site-config";
+import { SITE_NAME, SITE_NAME_TC, SITE_URL } from "@/lib/site-config";
 import "./globals.css";
 
+const SITE_TITLE = `${SITE_NAME} — ${SITE_NAME_TC}`;
+const SITE_DESCRIPTION =
+  "聚焦新楓之谷時裝搭配的社群空間。即時試穿裝備、儲存搭配，與其他玩家分享、瀏覽彼此的造型。";
+
 export const metadata: Metadata = {
-  title: `${SITE_NAME} ${SITE_NAME_TC}`,
-  description: "新楓之谷時裝搭配社群 — 致敬「放大鏡」",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   icons: {
     icon: "/maple-leaf.svg",
     apple: "/maple-leaf.png",
   },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    locale: "zh_TW",
+    url: SITE_URL,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

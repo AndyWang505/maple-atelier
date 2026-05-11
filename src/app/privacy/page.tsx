@@ -4,7 +4,7 @@ import PageShell from "@/components/layout/PageShell";
 import { SITE_LINKS, SITE_NAME } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: `隱私政策 | ${SITE_NAME}`,
+  title: "隱私政策",
   description: `${SITE_NAME} 的資料蒐集、儲存、使用方式說明,以及使用者刪除 / 修改個人資料的方法。`,
 };
 
