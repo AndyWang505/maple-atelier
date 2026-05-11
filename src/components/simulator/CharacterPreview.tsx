@@ -83,11 +83,12 @@ function PreviewImage({ url, scale, isDarkBg }: PreviewImageProps) {
 
 export default function CharacterPreview() {
   const equipped = useSimulator((s) => s.equipped);
-  // stance / animated 收進 store,讓「重置」能一併還原成預設
+  // stance / animated / expression 收進 store,讓「重置」能一併還原成預設
   const stanceId = useSimulator((s) => s.stanceId);
   const setStanceId = useSimulator((s) => s.setStanceId);
   const animated = useSimulator((s) => s.animated);
   const setAnimated = useSimulator((s) => s.setAnimated);
+  const expression = useSimulator((s) => s.expression);
   const [zoomIdx, setZoomIdx] = useState(0);
   const scale = ZOOM_LEVELS[zoomIdx];
   const [bgIdx, setBgIdx] = useState(0);
@@ -97,11 +98,15 @@ export default function CharacterPreview() {
 
   const url = useMemo(() => {
     const skinItem = equipped.skin;
-    const items = Object.values(equipped).flatMap((item) =>
-      item && !isSyntheticSlot(item.slot)
-        ? [{ itemId: item.id, region: item.region, version: item.version }]
-        : [],
-    );
+    const items = Object.values(equipped).flatMap((item) => {
+      if (!item || isSyntheticSlot(item.slot)) return [];
+      return [{
+        itemId: item.id,
+        region: item.region,
+        version: item.version,
+        ...(item.slot === "face" ? { animationName: expression } : {}),
+      }];
+    });
     return getCharacterRenderUrl(items, {
       skin: skinItem?.id,
       skinRegion: skinItem?.region,
@@ -111,7 +116,7 @@ export default function CharacterPreview() {
       flipX: flipped,
       ...earFlagsForId(equipped.ear?.id),
     });
-  }, [equipped, stanceId, animated, flipped]);
+  }, [equipped, stanceId, animated, flipped, expression]);
 
   const handleDownload = () => {
     const filename = `maple-atelier-${stanceId}.${animated ? "gif" : "png"}`;

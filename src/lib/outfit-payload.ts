@@ -3,11 +3,12 @@ import { SLOTS, type CatalogItem, type Slot } from "@/types/maplestory";
 
 type Equipped = Partial<Record<Slot, CatalogItem>>;
 
-/** store equipped + 當下 stance/animated → DB 儲存的最小 JSON shape */
+/** store equipped + 當下 stance/animated/expression → DB 儲存的最小 JSON shape */
 export const toOutfitPayload = (
   equipped: Equipped,
   stance: string,
   animated: boolean,
+  expression: string,
 ): OutfitPayload => {
   const slots: OutfitPayload["slots"] = {};
   for (const slot of SLOTS) {
@@ -21,5 +22,11 @@ export const toOutfitPayload = (
       ...(item.isCash ? { isCash: true } : {}),
     };
   }
-  return { slots, stance, animated };
+  return {
+    slots,
+    stance,
+    animated,
+    // 預設值不存,省 bytes
+    ...(expression && expression !== "default" ? { expression } : {}),
+  };
 };

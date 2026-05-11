@@ -9,6 +9,7 @@ const MAX_PAYLOAD_BYTES = 8 * 1024;
 const MAX_STANCE_LEN = 32;
 const MAX_REGION_LEN = 16;
 const MAX_VERSION_LEN = 32;
+const MAX_EXPRESSION_LEN = 32;
 
 export const normalizeOutfitDescription = (
   raw: unknown,
@@ -50,6 +51,7 @@ export const isValidOutfitPayload = (p: unknown): p is OutfitPayload => {
 
   if (typeof x.stance !== "string" || x.stance.length > MAX_STANCE_LEN) return false;
   if (typeof x.animated !== "boolean") return false;
+  if (x.expression !== undefined && (typeof x.expression !== "string" || x.expression.length > MAX_EXPRESSION_LEN)) return false;
   if (!x.slots || typeof x.slots !== "object" || Array.isArray(x.slots)) return false;
 
   for (const [slot, ref] of Object.entries(x.slots)) {

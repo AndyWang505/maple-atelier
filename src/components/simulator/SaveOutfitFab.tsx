@@ -19,6 +19,7 @@ export default function SaveOutfitFab() {
   const equipped = useSimulator((s) => s.equipped);
   const stanceId = useSimulator((s) => s.stanceId);
   const animated = useSimulator((s) => s.animated);
+  const expression = useSimulator((s) => s.expression);
 
   if (status === "loading") return null;
 
@@ -34,7 +35,7 @@ export default function SaveOutfitFab() {
     try {
       await createOutfit({
         ...values,
-        payload: toOutfitPayload(equipped, stanceId, animated),
+        payload: toOutfitPayload(equipped, stanceId, animated, expression),
       });
       toast.success("已加入衣櫃");
       return { ok: true };

@@ -25,6 +25,7 @@ type Catalog = Partial<Record<Slot, SlotCache>>;
 
 const DEFAULT_STANCE = "stand1";
 const DEFAULT_ANIMATED = false;
+const DEFAULT_EXPRESSION = "default";
 
 interface SimulatorState {
   equipped: Equipped;
@@ -33,6 +34,7 @@ interface SimulatorState {
   stanceId: string;
   /** 是否取動畫 GIF(false 取靜態 PNG) */
   animated: boolean;
+  expression: string;
   /**
    * 每次清空 / 隨機 / 載入別套都 +1。loadSlot 拿到 fetch 結果若要寫回隨機選的 item,
    * 會比對自己抓的 generation;若期間有人重新整理過,寫回會被丟棄,避免 in-flight
@@ -41,12 +43,13 @@ interface SimulatorState {
   generation: number;
   equip: (item: CatalogItem) => void;
   unequip: (slot: Slot) => void;
-  /** 清空裝備並還原 stance / animated 為預設 */
+  /** 清空裝備並還原 stance / animated / expression 為預設 */
   reset: () => void;
   /** 必裝身體三件 + 選裝 9 件各 50% + (上衣+褲子) vs 套服 二擇一 */
   randomize: () => void;
   setStanceId: (id: string) => void;
   setAnimated: (animated: boolean) => void;
+  setExpression: (expression: string) => void;
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
   loadOutfit: (payload: OutfitPayload) => void;
   loadDefault: () => void;
@@ -59,6 +62,7 @@ export const useSimulator = create<SimulatorState>()(
       catalog: {},
       stanceId: DEFAULT_STANCE,
       animated: DEFAULT_ANIMATED,
+      expression: DEFAULT_EXPRESSION,
       generation: 0,
 
       equip: (item) =>
@@ -86,6 +90,7 @@ export const useSimulator = create<SimulatorState>()(
           equipped: {},
           stanceId: DEFAULT_STANCE,
           animated: DEFAULT_ANIMATED,
+          expression: DEFAULT_EXPRESSION,
           generation: state.generation + 1,
         })),
 
@@ -119,6 +124,10 @@ export const useSimulator = create<SimulatorState>()(
         if (get().animated === animated) return;
         set({ animated });
       },
+      setExpression: (expression) => {
+        if (get().expression === expression) return;
+        set({ expression });
+      },
 
       loadOutfit: (payload) => {
         const state = get();
@@ -142,6 +151,7 @@ export const useSimulator = create<SimulatorState>()(
           equipped,
           stanceId: payload.stance,
           animated: payload.animated,
+          expression: payload.expression ?? DEFAULT_EXPRESSION,
           generation: state.generation + 1,
         }));
         void upgradeStubNames(set, get, equipped);
@@ -214,6 +224,7 @@ export const useSimulator = create<SimulatorState>()(
         equipped: state.equipped,
         stanceId: state.stanceId,
         animated: state.animated,
+        expression: state.expression,
       }),
     },
   ),

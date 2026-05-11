@@ -28,6 +28,45 @@ export const BASIC_STANCES = [
 
 // 標籤慣例:swing* / stab* 數字是 frame index(1/2/3 是同動畫的不同幀),
 // shoot* 後綴是武器類別(拳 / 弓 / 槍),不是同一動作的不同幀。
+/**
+ * maplestory.io 的 face item 內建表情 frame,透過 `animationName` 帶進 item entry。
+ */
+export interface ExpressionDef {
+  /** maplestory.io animationName value */
+  id: string;
+  label: string;
+  isCash?: boolean;
+}
+
+export const EXPRESSIONS: ReadonlyArray<ExpressionDef> = [
+  { id: "default", label: "預設" },
+  { id: "smile", label: "微笑" },
+  { id: "troubled", label: "困擾" },
+  { id: "cry", label: "哭" },
+  { id: "angry", label: "生氣" },
+  { id: "hit", label: "受傷" },
+  { id: "bewildered", label: "困惑" },
+  { id: "stunned", label: "呆滯" },
+  { id: "hum", label: "哼", isCash: true },
+  { id: "despair", label: "絕望", isCash: true },
+  { id: "oops", label: "糟糕", isCash: true },
+  { id: "vomit", label: "嘔吐", isCash: true },
+  { id: "bowing", label: "鞠躬", isCash: true },
+  { id: "dam", label: "可惡", isCash: true },
+  { id: "pain", label: "痛苦", isCash: true },
+  { id: "hot", label: "怒火", isCash: true },
+  { id: "cheers", label: "歡呼", isCash: true },
+  { id: "wink", label: "眨眼", isCash: true },
+  { id: "blaze", label: "燃燒", isCash: true },
+  { id: "chu", label: "親親", isCash: true },
+  { id: "shine", label: "閃耀", isCash: true },
+  { id: "glitter", label: "閃亮", isCash: true },
+  { id: "love", label: "愛心", isCash: true },
+  { id: "qBlue", label: "Q Blue", isCash: true },
+];
+
+export const DEFAULT_EXPRESSION = "default";
+
 export const ATTACK_STANCES = [
   { id: "swingO1", label: "單手揮砍 (1)" },
   { id: "swingO2", label: "單手揮砍 (2)" },

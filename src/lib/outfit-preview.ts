@@ -24,10 +24,16 @@ interface PreviewOpts {
 
 const buildUrl = (payload: OutfitPayload, opts: PreviewOpts) => {
   const skin = payload.slots.skin;
+  const expression = payload.expression ?? "default";
   const items = SLOTS.flatMap((slot) => {
     const ref = payload.slots[slot];
     if (!ref || isSyntheticSlot(slot)) return [];
-    return [{ itemId: ref.id, region: ref.region, version: ref.version }];
+    return [{
+      itemId: ref.id,
+      region: ref.region,
+      version: ref.version,
+      ...(slot === "face" ? { animationName: expression } : {}),
+    }];
   });
   return getCharacterRenderUrl(items, {
     skin: skin?.id,

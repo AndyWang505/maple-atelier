@@ -16,6 +16,7 @@ export interface CharacterRenderItem {
   /** per-item region/version override;空白走全域 opts.region。讓 JMS-only 素材能跨服渲染 */
   region?: string;
   version?: string;
+  animationName?: string;
 }
 
 // 30/50 sized for big weapons + tall hats; pads canvas so bottom-anchor keeps feet aligned across stances.
@@ -71,6 +72,7 @@ export function getCharacterRenderUrl(
     itemId: i.itemId,
     region: i.region ?? region,
     version: i.version ?? version,
+    ...(i.animationName ? { animationName: i.animationName } : {}),
   }));
 
   const allEntries = [...skinEntries, ...itemEntries];

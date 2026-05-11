@@ -74,6 +74,8 @@ export interface OutfitPayload {
   slots: Partial<Record<Slot, OutfitSlotRef>>;
   stance: string;
   animated: boolean;
+  /** maplestory.io animationName,渲染時掛到 face item entry 上控制表情 frame */
+  expression?: string;
 }
 
 export const outfits = sqliteTable(

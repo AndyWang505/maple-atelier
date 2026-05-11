@@ -97,9 +97,29 @@ export default function AboutPage() {
             <code className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 text-sm">
               maplestory.io
             </code>
-            ，目前主要對應台版（TMS）。
-            部分裝備可能因 API 沒收錄或欄位問題沒被列出來。
-            如果你有特定裝備找不到，可以在問題回報區提出，供後續作處理。
+            ,目前主要對應台版(TMS)。
+            部分裝備可能因 API 沒收錄或欄位問題沒被列出來,請見諒。
+          </FAQ>
+          <FAQ q="模擬器的預覽 / icon 看起來跟遊戲不太一樣?">
+            角色 render 跟 item 縮圖都來自
+            <code className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 text-sm">
+              maplestory.io
+            </code>
+            ,有幾個已知 API 限制:
+            <ul className="list-disc pl-5 mt-2 space-y-1.5 marker:text-maple-red">
+              <li>
+                臉型 icon 跟角色頭上實際渲染的臉略不同 — icon 用該 face 的代表 frame,角色 render 用預設 frame。
+              </li>
+              <li>
+                部分 item icon 顯示「?」是 maplestory.io 資料缺漏 — 裝備功能正常,只是縮圖載不到。
+              </li>
+              <li>
+                沒有染料 / 混色預覽 — 這些 API 沒提供,長期可能透過 Nexon 官方 API 補上。
+              </li>
+              <li>
+                動作 / 表情清單是 maplestory.io 開放的子集,不是遊戲內全部。
+              </li>
+            </ul>
           </FAQ>
           <FAQ q="我可以儲存幾套搭配？">
             目前每位使用者最多儲存 <strong>20 套</strong>。
@@ -143,7 +163,7 @@ export default function AboutPage() {
             回報 Bug
           </h3>
           <p className="text-sm text-zinc-600 mb-3">
-            到 GitHub repo 開新 issue，選「Bug report」模板。為了方便重現問題，建議附上:
+            到 GitHub repo 開新 issue，選「Bug report」模板。為了方便重現問題，建議附上：
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-sm text-zinc-600 marker:text-maple-red">
             <li>
