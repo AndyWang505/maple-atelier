@@ -36,6 +36,7 @@ export const OPTIONAL_SLOTS: ReadonlyArray<Slot> = [
   "eyeDecoration",
   "earring",
   "shoes",
+  "glove",
   "cape",
   "weapon",
   "offhand",

@@ -11,6 +11,7 @@ export const SLOTS = [
   "coat",
   "pants",
   "shoes",
+  "glove",
   "cape",
   "weapon",
   "offhand",

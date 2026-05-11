@@ -27,6 +27,7 @@ export const SLOT_FILTERS: Record<Slot, ReadonlyArray<SlotFilter>> = {
   overall: [{ overallCategoryFilter: "Equip", categoryFilter: "Armor", subCategoryFilter: "Overall" }],
   shoes: [{ overallCategoryFilter: "Equip", categoryFilter: "Armor", subCategoryFilter: "Shoes" }],
   cape: [{ overallCategoryFilter: "Equip", categoryFilter: "Armor", subCategoryFilter: "Cape" }],
+  glove: [{ overallCategoryFilter: "Equip", categoryFilter: "Armor", subCategoryFilter: "Glove" }],
   weapon: [
     { overallCategoryFilter: "Equip", categoryFilter: "One-Handed Weapon", subCategoryFilter: "One-Handed Sword" },
     { overallCategoryFilter: "Equip", categoryFilter: "One-Handed Weapon", subCategoryFilter: "Dagger" },
