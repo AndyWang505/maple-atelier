@@ -3,7 +3,7 @@
 import IconButton from "@mui/material/IconButton";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { getLikeTooltip, useOutfitLike } from "@/lib/use-outfit-like";
+import { getLikeTooltip, useOutfitLike } from "@/lib/hooks/use-outfit-like";
 
 interface LikeButtonProps {
   outfitId: number;

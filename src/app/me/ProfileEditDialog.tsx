@@ -7,22 +7,10 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { useApiUpdateProfile } from "@/lib/hooks/use-profile";
+import { useApiUpdateProfile } from "@/lib/api/hooks/use-api-profile";
 import { useToast } from "@/components/ToastProvider";
 import { DISPLAY_NAME_MAX_LEN } from "@/lib/limits";
-import { ApiError } from "@/lib/api/fetcher";
-
-const extractApiErrorMessage = (e: unknown): string | null => {
-  if (e instanceof ApiError) {
-    try {
-      const data = JSON.parse(e.body) as { error?: string };
-      if (typeof data.error === "string") return data.error;
-    } catch {
-      // body 不是 JSON,回退到下面的 fallback
-    }
-  }
-  return null;
-};
+import { getApiErrorMessage } from "@/lib/api/fetcher";
 
 interface ProfileEditDialogProps {
   open: boolean;
@@ -60,7 +48,7 @@ export default function ProfileEditDialog({
       toast.success(next === null ? "已改回 Discord 名稱" : "已更新顯示名稱");
       onClose();
     } catch (e) {
-      const apiMsg = extractApiErrorMessage(e);
+      const apiMsg = getApiErrorMessage(e);
       toast.error(apiMsg ?? (e instanceof Error ? e.message : "更新失敗"));
     }
   };

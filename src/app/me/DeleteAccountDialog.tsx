@@ -9,7 +9,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import { deleteAccount } from "@/lib/api/profile";
+import { deleteAccount } from "@/lib/api/clients/profile";
 import { useToast } from "@/components/ToastProvider";
 
 interface Props {

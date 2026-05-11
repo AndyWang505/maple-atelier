@@ -14,6 +14,17 @@ export class ApiError extends Error {
   }
 }
 
+/** 從 ApiError body 取 `{ error }` 字串(server 統一錯誤回應 shape)。非 ApiError / body 非 JSON 回 null。 */
+export function getApiErrorMessage(e: unknown): string | null {
+  if (!(e instanceof ApiError)) return null;
+  try {
+    const data = JSON.parse(e.body) as { error?: string };
+    return typeof data.error === "string" ? data.error : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function apiJson<T>(
   url: string,
   init?: RequestInit,

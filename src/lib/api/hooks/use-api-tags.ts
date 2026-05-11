@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { getTopTags } from "@/lib/api/tags";
+import { getTopTags } from "@/lib/api/clients/tags";
 import { KEYS } from "@/lib/api/keys";
 import type { TagCount } from "@/lib/api/types";
 

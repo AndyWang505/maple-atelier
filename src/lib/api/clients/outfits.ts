@@ -1,5 +1,5 @@
-import { apiDelete, apiJson, apiPost, apiPut } from "./fetcher";
-import { KEYS } from "./keys";
+import { apiDelete, apiJson, apiPost, apiPut } from "../fetcher";
+import { KEYS } from "../keys";
 import type {
   CreateOutfitBody,
   CreateOutfitResponse,
@@ -8,7 +8,7 @@ import type {
   PublicOutfitsResponse,
   UpdateOutfitBody,
   VoteResponse,
-} from "./types";
+} from "../types";
 
 /** typed wrappers — UI / hook 都從這邊呼叫,不直接 fetch */
 

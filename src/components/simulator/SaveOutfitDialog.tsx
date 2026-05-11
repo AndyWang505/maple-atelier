@@ -10,7 +10,7 @@ import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Switch from "@mui/material/Switch";
 import Chip from "@mui/material/Chip";
-import { useApiTopTags } from "@/lib/hooks/use-tags";
+import { useApiTopTags } from "@/lib/api/hooks/use-api-tags";
 import { OUTFIT_LIMITS, TAG_VALID_REGEX } from "@/lib/limits";
 import { tagChipSx, tagChipClickableSx } from "@/lib/mui/theme";
 

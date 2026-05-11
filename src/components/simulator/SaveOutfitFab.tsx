@@ -7,18 +7,9 @@ import { useSession } from "next-auth/react";
 import { useSimulator } from "@/store/simulator";
 import { toOutfitPayload } from "@/lib/outfit-payload";
 import { useToast } from "@/components/ToastProvider";
-import { useApiCreateOutfit } from "@/lib/hooks/use-outfits";
-import { ApiError } from "@/lib/api/fetcher";
+import { useApiCreateOutfit } from "@/lib/api/hooks/use-api-outfits";
+import { ApiError, getApiErrorMessage } from "@/lib/api/fetcher";
 import SaveOutfitDialog, { type OutfitFormValues, type SubmitResult } from "./SaveOutfitDialog";
-
-function parseQuotaError(body: string): string | null {
-  try {
-    const data = JSON.parse(body) as { error?: string };
-    return data.error ?? null;
-  } catch {
-    return null;
-  }
-}
 
 export default function SaveOutfitFab() {
   const { status } = useSession();
@@ -51,8 +42,7 @@ export default function SaveOutfitFab() {
       toast.error("儲存失敗");
       if (e instanceof ApiError) {
         if (e.status === 429) {
-          const parsed = parseQuotaError(e.body);
-          return { ok: false, error: parsed ?? "已達儲存上限,請刪除舊的搭配" };
+          return { ok: false, error: getApiErrorMessage(e) ?? "已達儲存上限,請刪除舊的搭配" };
         }
         if (e.status === 401) return { ok: false, error: "請先登入再儲存" };
         return { ok: false, error: `儲存失敗(${e.status})` };

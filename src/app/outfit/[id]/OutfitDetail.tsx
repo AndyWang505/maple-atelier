@@ -27,7 +27,7 @@ import {
   BASIC_STANCES,
   STAND_STANCES,
 } from "@/lib/preview-config";
-import { getLikeTooltip, useOutfitLike } from "@/lib/use-outfit-like";
+import { getLikeTooltip, useOutfitLike } from "@/lib/hooks/use-outfit-like";
 import SlotBreakdown from "@/components/SlotBreakdown";
 
 const STANCE_MENU_PROPS = {

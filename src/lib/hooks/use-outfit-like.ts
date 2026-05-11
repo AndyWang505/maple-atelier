@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { useApiVoteOutfit } from "@/lib/hooks/use-outfits";
+import { useApiVoteOutfit } from "@/lib/api/hooks/use-api-outfits";
 
 export interface UseOutfitLikeOptions {
   outfitId: number;

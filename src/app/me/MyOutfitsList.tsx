@@ -29,7 +29,7 @@ import {
   useApiMyOutfits,
   useApiTogglePublicOutfit,
   useApiUpdateOutfit,
-} from "@/lib/hooks/use-outfits";
+} from "@/lib/api/hooks/use-api-outfits";
 import type { MyOutfitRow } from "@/lib/api/types";
 
 interface Props {

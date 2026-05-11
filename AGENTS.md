@@ -19,7 +19,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Commit 前 30 秒掃一眼:
 
 - [ ] `pnpm typecheck && pnpm lint` 通過
-- [ ] 新 hook → `useApi*` 命名,放 `src/lib/hooks/`
+- [ ] React hook(任何用 `useState` / `useEffect` 等的函式)→ 放 `src/lib/hooks/`,**不放 `lib/` 根層**;API hook 額外加 `useApi*` 前綴
 - [ ] HTTP 請求 → 走 `lib/api/fetcher.ts` 的 `apiJson`
 - [ ] Schema 改了 → `pnpm db:generate` + commit migration
 - [ ] 新 sx ≥ 2 處用 → 進 `lib/mui/theme.ts`
@@ -55,8 +55,13 @@ src/
     ui/                   原子視覺
   db/                     Drizzle schema + client
   lib/
-    api/                  typed fetch wrapper + types
-    hooks/                SWR + 共用 React hook
+    api/                  與 backend 對接層
+      clients/            ← per-resource typed fetcher(outfits / profile / tags)
+      hooks/              ← useApi* SWR hooks(use-api-*.ts)
+      types/              ← 拆 requests.ts / responses.ts / models.ts(index.ts re-export)
+      fetcher.ts          ← apiJson / apiPost / apiPut / apiDelete 共用
+      keys.ts             ← SWR cache key factory
+    hooks/                純 React hook(非 API,如 useOutfitLike)
     queries/              server-side D1 query helper
     validators/           使用者輸入 normalize / validate
     maplestory/           外部 API client
@@ -147,7 +152,8 @@ export default async function Page() {
 - **語意化** — 函式動詞開頭(`fetchItemsBySlot`)、變數名詞(`outfit`)。
 - **可接受縮寫**:`id` / `url` / `db` / `sx` / `ref` / `props` / `req` / `res` / `ctx`。其他不縮寫。
 - **Boolean 用 `is` / `has` / `can` 開頭**:`isPublic` / `hasMore` / `canLike`。
-- **API hook 用 `useApi*` 前綴**:`useApiPublicOutfits`。
+- **任何 `use*` 函式(含 `useState` / `useEffect` 等)放 `src/lib/hooks/`**,不放 `lib/` 根層;component 內 inline 用的留 component 旁。
+- **API / SWR hook 加 `useApi*` 前綴**:`useApiPublicOutfits`。
 - **常數 SCREAMING_SNAKE_CASE**:`MAX_OUTFITS_PER_USER`。
 - **Array 用複數 / 單筆用單數**:`outfits` / `outfit`。
 
@@ -290,13 +296,14 @@ OWASP Top 10 對應到本 stack:
 
 寫新 util / hook / component 前依序 grep:
 
-1. `src/lib/api/` — 已有 typed fetch?
-2. `src/lib/hooks/` — 已有 SWR hook?
-3. `src/lib/queries/` — 已有 D1 query helper?
-4. `src/lib/validators/` — 已有 input normalize?
-5. `src/lib/mui/theme.ts` — 已有 sx?
-6. `src/components/` — 已有 component?
-7. `@mui/material` / `@mui/icons-material` — 內建?
-8. `next/*` — 內建?
+1. `src/lib/api/clients/` — 已有 typed fetch?
+2. `src/lib/api/hooks/` — 已有 useApi* SWR hook?
+3. `src/lib/hooks/` — 已有純 React hook?
+4. `src/lib/queries/` — 已有 D1 query helper?
+5. `src/lib/validators/` — 已有 input normalize?
+6. `src/lib/mui/theme.ts` — 已有 sx?
+7. `src/components/` — 已有 component?
+8. `@mui/material` / `@mui/icons-material` — 內建?
+9. `next/*` — 內建?
 
 找到 → 用。找不到才寫。

@@ -10,7 +10,7 @@ import {
   getPublicOutfits,
   updateOutfit,
   voteOutfit,
-} from "@/lib/api/outfits";
+} from "@/lib/api/clients/outfits";
 import { isPublicOutfitsKey, isTagsKey, KEYS } from "@/lib/api/keys";
 import type {
   CreateOutfitBody,

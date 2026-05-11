@@ -13,8 +13,8 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import ExploreOutfitCard from "@/components/ExploreOutfitCard";
 import ExploreOutfitCardSkeleton from "@/components/ExploreOutfitCardSkeleton";
-import { useApiPublicOutfits } from "@/lib/hooks/use-outfits";
-import { useApiTopTags } from "@/lib/hooks/use-tags";
+import { useApiPublicOutfits } from "@/lib/api/hooks/use-api-outfits";
+import { useApiTopTags } from "@/lib/api/hooks/use-api-tags";
 import type { PublicOutfitsResponse, TagCount } from "@/lib/api/types";
 
 type Sort = "hot" | "trending" | "new";

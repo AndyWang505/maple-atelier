@@ -2,8 +2,9 @@
 
 import useSWRMutation from "swr/mutation";
 import { mutate as globalMutate } from "swr";
-import { updateProfile, type UpdateProfileBody } from "@/lib/api/profile";
+import { updateProfile } from "@/lib/api/clients/profile";
 import { isPublicOutfitsKey } from "@/lib/api/keys";
+import type { UpdateProfileBody } from "@/lib/api/types";
 
 export function useApiUpdateProfile() {
   return useSWRMutation(
