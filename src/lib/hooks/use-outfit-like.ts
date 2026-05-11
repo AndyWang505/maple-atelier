@@ -104,25 +104,23 @@ export function useOutfitLike({
       return;
     }
     if (isOwnOutfit) return;
-    setLiked((curr) => {
-      const next = !curr;
-      pendingTargetRef.current = next;
-      setUpvotes((u) => u + (next ? 1 : -1));
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-        debounceTimerRef.current = null;
-      }
-      // toggle 後回到 server 已知 state → 沒必要送 API,把 pending 清掉
-      if (next === lastSentLikedRef.current) {
-        pendingTargetRef.current = null;
-        return next;
-      }
-      debounceTimerRef.current = setTimeout(() => {
-        void flush();
-      }, DEBOUNCE_MS);
-      return next;
-    });
-  }, [isAuthenticated, isOwnOutfit, toast, flush]);
+    const next = !liked;
+    setLiked(next);
+    setUpvotes(upvotes + (next ? 1 : -1));
+    pendingTargetRef.current = next;
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+    }
+    // toggle 後回到 server 已知 state → 沒必要送 API,把 pending 清掉
+    if (next === lastSentLikedRef.current) {
+      pendingTargetRef.current = null;
+      return;
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      void flush();
+    }, DEBOUNCE_MS);
+  }, [liked, upvotes, isAuthenticated, isOwnOutfit, toast, flush]);
 
   return { upvotes, liked, pending: isMutating, toggle };
 }
