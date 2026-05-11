@@ -1,0 +1,70 @@
+name: Check MapleStory.io Version
+
+# 每週日 03:00 UTC(台北 11:00)掃一次 maplestory.io 的 TWMS 當前版本。
+# 若 DEFAULT_VERSION 跟線上不同 → 自動開 PR。人工 review + smoke test 後再 merge,
+# 避免 maplestory.io 把版本升上去但 schema breaking 直接打進 prod。
+on:
+  schedule:
+    - cron: "0 3 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch latest TWMS version
+        id: fetch
+        run: |
+          set -euo pipefail
+          LATEST=$(curl -fsSL https://maplestory.io/api/wz \
+            | jq -r '.[] | select(.region=="TWMS" and .isReady==true) | .mapleVersionId')
+          CURRENT=$(grep -oP 'DEFAULT_VERSION = "\K[^"]+' src/lib/maplestory/urls.ts)
+          if [ -z "$LATEST" ]; then
+            echo "::error::Could not parse TWMS version from /api/wz"
+            exit 1
+          fi
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "✓ Up to date (current=$CURRENT)"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "⚠ Outdated: current=$CURRENT, latest=$LATEST"
+          fi
+
+      - name: Bump DEFAULT_VERSION
+        if: steps.fetch.outputs.changed == 'true'
+        run: |
+          sed -i "s/DEFAULT_VERSION = \"${{ steps.fetch.outputs.current }}\"/DEFAULT_VERSION = \"${{ steps.fetch.outputs.latest }}\"/" \
+            src/lib/maplestory/urls.ts
+
+      - name: Open PR
+        if: steps.fetch.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          commit-message: |
+            chore(maplestory): bump TWMS version ${{ steps.fetch.outputs.current }} → ${{ steps.fetch.outputs.latest }}
+          branch: bump-maplestory-version
+          delete-branch: true
+          title: "chore(maplestory): bump TWMS version ${{ steps.fetch.outputs.current }} → ${{ steps.fetch.outputs.latest }}"
+          body: |
+            Auto-detected new MapleStory.io TWMS version.
+
+            - Previous: `${{ steps.fetch.outputs.current }}`
+            - Latest:   `${{ steps.fetch.outputs.latest }}`
+
+            **Before merging**, run a smoke test on staging:
+            - Item catalog loads(hair / face / hat / weapon)
+            - Character render OK
+            - 任何 schema 異常 → 回滾,留 issue 給 maplestory.io
