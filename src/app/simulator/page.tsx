@@ -117,7 +117,7 @@ export default function SimulatorPage() {
 
   return (
     <>
-      <div className="relative overflow-hidden bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
+      <div className="relative overflow-hidden flex-1 bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
         {/* 底部極光帶 */}
         <div
           aria-hidden

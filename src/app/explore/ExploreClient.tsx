@@ -222,7 +222,7 @@ export default function ExploreClient({
           />
         </form>
 
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-5">
+        <div className="mb-5">
           <ToggleButtonGroup
             value={sort}
             exclusive
@@ -234,14 +234,6 @@ export default function ExploreClient({
             <ToggleButton value="trending">趨勢</ToggleButton>
             <ToggleButton value="new">最新</ToggleButton>
           </ToggleButtonGroup>
-          {tag && (
-            <Chip
-              label={`#${tag}`}
-              size="small"
-              color="primary"
-              onDelete={() => setParams({ tag: null })}
-            />
-          )}
         </div>
 
         {topTags && topTags.length > 0 && (

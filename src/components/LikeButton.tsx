@@ -45,10 +45,16 @@ export default function LikeButton({
       <IconButton
         size="small"
         onClick={() => void toggle()}
-        disabled={isOwnOutfit || pending}
+        disabled={pending}
         aria-label={liked ? "取消推" : "推"}
         title={tooltip}
-        sx={{ color: "inherit" }}
+        sx={{
+          color: "inherit",
+          ...(isOwnOutfit && {
+            opacity: 0.5,
+            "&:hover": { backgroundColor: "transparent" },
+          }),
+        }}
       >
         {liked ? (
           <FavoriteIcon fontSize="small" />

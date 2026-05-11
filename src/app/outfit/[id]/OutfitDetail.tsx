@@ -205,7 +205,7 @@ export default function OutfitDetail({
         <button
             type="button"
             onClick={() => void handleLike()}
-            disabled={isOwnOutfit || pending}
+            disabled={pending}
             title={getLikeTooltip({ isOwnOutfit, isAuthenticated, liked })}
             className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full border font-semibold transition ${
               liked

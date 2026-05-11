@@ -103,7 +103,10 @@ export function useOutfitLike({
       toast.info("需要登入後才能推");
       return;
     }
-    if (isOwnOutfit) return;
+    if (isOwnOutfit) {
+      toast.info("不能推自己的搭配");
+      return;
+    }
     const next = !liked;
     setLiked(next);
     setUpvotes(upvotes + (next ? 1 : -1));
