@@ -20,7 +20,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import type { CatalogItem, Slot } from "@/types/maplestory";
 import { useSimulator } from "@/store/simulator";
-import { filterByGender } from "@/lib/outfit-rules";
 import { ItemTile } from "@/components/simulator/ItemTile";
 import {
   SLOT_LABELS,
@@ -55,8 +54,6 @@ export default function ItemPicker() {
   const equipped = useSimulator((s) => s.equipped);
   const slotCache = useSimulator((s) => s.catalog[active]);
   const loadSlot = useSimulator((s) => s.loadSlot);
-  const gender = useSimulator((s) => s.gender);
-
   useEffect(() => {
     void loadSlot(active);
   }, [active, loadSlot]);
@@ -73,18 +70,14 @@ export default function ItemPicker() {
 
   const isGrouped = isColorSlot(active);
 
-  const genderFiltered = useMemo(
-    () => filterByGender(slotCache?.items ?? [], active, gender),
-    [slotCache?.items, active, gender],
-  );
-
   // 一般/現金 過濾僅作用在「裝備」分類;外觀分類略過此維度
   const cashFiltered = useMemo(() => {
-    if (category !== "equipment" || cashFilter === "all") return genderFiltered;
-    return genderFiltered.filter((i) =>
+    const items = slotCache?.items ?? [];
+    if (category !== "equipment" || cashFilter === "all") return items;
+    return items.filter((i) =>
       cashFilter === "cash" ? i.isCash : !i.isCash,
     );
-  }, [genderFiltered, cashFilter, category]);
+  }, [slotCache?.items, cashFilter, category]);
 
   const collapsed = useMemo(
     () => (isGrouped ? collapseColorGroups(active, cashFiltered) : cashFiltered),
@@ -128,7 +121,7 @@ export default function ItemPicker() {
     const currentColor = equippedAtActive
       ? getColorIndex(active, equippedAtActive.id)
       : 0;
-    const variant = genderFiltered.find(
+    const variant = cashFiltered.find(
       (i) =>
         isSameStyle(active, i.id, groupRep.id) &&
         getColorIndex(active, i.id) === currentColor,

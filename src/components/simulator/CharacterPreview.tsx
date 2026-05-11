@@ -13,10 +13,7 @@ import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import DownloadIcon from "@mui/icons-material/Download";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
-import MaleIcon from "@mui/icons-material/Male";
-import FemaleIcon from "@mui/icons-material/Female";
 import { useSimulator } from "@/store/simulator";
-import type { Gender } from "@/types/maplestory";
 import {
   earFlagsForId,
   getCharacterRenderUrl,
@@ -86,8 +83,6 @@ function PreviewImage({ url, scale, isDarkBg }: PreviewImageProps) {
 
 export default function CharacterPreview() {
   const equipped = useSimulator((s) => s.equipped);
-  const gender = useSimulator((s) => s.gender);
-  const setGender = useSimulator((s) => s.setGender);
   // stance / animated 收進 store,讓「重置」能一併還原成預設
   const stanceId = useSimulator((s) => s.stanceId);
   const setStanceId = useSimulator((s) => s.setStanceId);
@@ -98,6 +93,7 @@ export default function CharacterPreview() {
   const [bgIdx, setBgIdx] = useState(0);
   const bg = BG_OPTIONS[bgIdx];
   const isDarkBg = bg.id === "dark";
+  const [flipped, setFlipped] = useState(false);
 
   const url = useMemo(() => {
     const skinItem = equipped.skin;
@@ -112,9 +108,10 @@ export default function CharacterPreview() {
       skinVersion: skinItem?.version,
       stance: stanceId,
       frame: animated ? "animated" : 0,
+      flipX: flipped,
       ...earFlagsForId(equipped.ear?.id),
     });
-  }, [equipped, stanceId, animated]);
+  }, [equipped, stanceId, animated, flipped]);
 
   const handleDownload = () => {
     const filename = `maple-atelier-${stanceId}.${animated ? "gif" : "png"}`;
@@ -147,19 +144,17 @@ export default function CharacterPreview() {
     >
       <div className="relative z-20 flex items-center justify-between gap-2 flex-wrap">
         <ToggleButtonGroup
-          value={gender}
+          value={flipped ? "reverse" : "forward"}
           exclusive
           size="small"
-          onChange={(_, v: Gender | null) => v && setGender(v)}
-          aria-label="性別"
+          onChange={(_, v: "forward" | "reverse" | null) =>
+            v && setFlipped(v === "reverse")
+          }
+          aria-label="方向"
           sx={isDarkBg ? { "& .MuiToggleButton-root": DARK_TOGGLE_SX } : undefined}
         >
-          <ToggleButton value="male" aria-label="男">
-            <MaleIcon fontSize="small" />
-          </ToggleButton>
-          <ToggleButton value="female" aria-label="女">
-            <FemaleIcon fontSize="small" />
-          </ToggleButton>
+          <ToggleButton value="forward">正向</ToggleButton>
+          <ToggleButton value="reverse">反向</ToggleButton>
         </ToggleButtonGroup>
 
         <div className="flex items-center gap-2">

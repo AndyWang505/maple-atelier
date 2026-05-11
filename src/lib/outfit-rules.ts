@@ -1,29 +1,16 @@
 import type { OutfitPayload } from "@/db/schema";
-import type { CatalogItem, Gender, Slot } from "@/types/maplestory";
+import type { Slot } from "@/types/maplestory";
 
-export const DEFAULT_OUTFIT_PAYLOAD: Record<Gender, OutfitPayload> = {
-  male: {
-    slots: {
-      hair: { id: 30000 },
-      face: { id: 20000 },
-      skin: { id: 2000 },
-      coat: { id: 1040036 },
-      pants: { id: 1060026 },
-    },
-    stance: "stand1",
-    animated: false,
+export const DEFAULT_OUTFIT_PAYLOAD: OutfitPayload = {
+  slots: {
+    hair: { id: 30000 },
+    face: { id: 20000 },
+    skin: { id: 2000 },
+    coat: { id: 1040036 },
+    pants: { id: 1060026 },
   },
-  female: {
-    slots: {
-      hair: { id: 31000 },
-      face: { id: 21000 },
-      skin: { id: 2000 },
-      coat: { id: 1040036 },
-      pants: { id: 1060026 },
-    },
-    stance: "stand1",
-    animated: false,
-  },
+  stance: "stand1",
+  animated: false,
 };
 
 /** 必裝 slot — 角色基本身體要件,隨機初始化必出 */
@@ -41,26 +28,6 @@ export const OPTIONAL_SLOTS: ReadonlyArray<Slot> = [
   "weapon",
   "offhand",
 ];
-
-/**
- * maplestory.io 的 `requiredGender` 只有在 Character 系(hair / face)是真的性別欄,
- * 其他裝備這欄被拿去放 job/class 之類的東西 — id=1000000「空氣帽」requiredGender=0
- * 但實際是通用基礎帽就是證據。所以只對 hair/face 過濾,其他 slot 一律當通用。
- */
-const GENDER_LOCKED_SLOTS: ReadonlySet<Slot> = new Set(["hair", "face"]);
-
-const genderNum = (g: Gender): 0 | 1 => (g === "male" ? 0 : 1);
-
-/** 一次決定該 slot 要不要過濾,非 locked slot 直接回原陣列、跳過 N 次 per-item 比對 */
-export const filterByGender = (
-  items: CatalogItem[],
-  slot: Slot,
-  gender: Gender,
-): CatalogItem[] => {
-  if (!GENDER_LOCKED_SLOTS.has(slot)) return items;
-  const target = genderNum(gender);
-  return items.filter((i) => i.requiredGender === 2 || i.requiredGender === target);
-};
 
 /** 抽一套隨機 slot 集合:必裝 + 選裝 50/50 + (上衣+褲子) vs 套服 二擇一 */
 export const pickRandomSlotSet = (): Slot[] => {

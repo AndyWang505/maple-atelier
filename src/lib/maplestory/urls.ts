@@ -44,6 +44,8 @@ export function getCharacterRenderUrl(
     padY?: number;
     /** 1 = 96×96 canvas (mode=1)、2/3 倍放大讓圖更貼近顯示尺寸 */
     resize?: number;
+    /** true 把角色水平翻轉(預設角色面向右,flip 後面向左)*/
+    flipX?: boolean;
   },
 ) {
   const skin = opts?.skin ?? DEFAULT_SKIN;
@@ -80,7 +82,7 @@ export function getCharacterRenderUrl(
     showLefEars: String(opts?.showLefEars ?? false),
     showHighLefEars: String(opts?.showHighLefEars ?? false),
     resize: String(resize),
-    flipX: "false",
+    flipX: String(opts?.flipX ?? false),
     renderMode: String(renderMode),
     padX: String(padX),
     padY: String(padY),

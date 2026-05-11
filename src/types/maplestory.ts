@@ -20,8 +20,6 @@ export const SLOTS = [
 
 export type Slot = (typeof SLOTS)[number];
 
-export type Gender = "male" | "female";
-
 export interface MaplestoryClientOptions {
   region?: string;
   version?: string;

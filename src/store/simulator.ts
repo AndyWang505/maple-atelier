@@ -3,18 +3,15 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { fetchItemsBySlot, fetchSlotItemInfo } from "@/lib/maplestory";
 import {
   DEFAULT_OUTFIT_PAYLOAD,
-  filterByGender,
   pickRandom,
   pickRandomSlotSet,
 } from "@/lib/outfit-rules";
 import type { OutfitPayload } from "@/db/schema";
-import type { CatalogItem, Gender, Slot } from "@/types/maplestory";
+import type { CatalogItem, Slot } from "@/types/maplestory";
 import { SLOTS } from "@/types/maplestory";
 
 /** stub item 的 sentinel:`name === "#" + id` 表示這是 loadOutfit 留下還沒升級成真名的占位 */
 const isStub = (item: CatalogItem) => item.name === `#${item.id}`;
-
-export type { Gender };
 
 type Equipped = Partial<Record<Slot, CatalogItem>>;
 
@@ -32,13 +29,12 @@ const DEFAULT_ANIMATED = false;
 interface SimulatorState {
   equipped: Equipped;
   catalog: Catalog;
-  gender: Gender;
   /** 渲染姿勢(stand1 / walk1 / swingO1 ...) */
   stanceId: string;
   /** 是否取動畫 GIF(false 取靜態 PNG) */
   animated: boolean;
   /**
-   * 每次清空 / 隨機 / 切換性別都 +1。loadSlot 拿到 fetch 結果若要寫回隨機選的 item,
+   * 每次清空 / 隨機 / 載入別套都 +1。loadSlot 拿到 fetch 結果若要寫回隨機選的 item,
    * 會比對自己抓的 generation;若期間有人重新整理過,寫回會被丟棄,避免 in-flight
    * 的舊 random 結果污染新的 outfit。
    */
@@ -47,9 +43,8 @@ interface SimulatorState {
   unequip: (slot: Slot) => void;
   /** 清空裝備並還原 stance / animated 為預設 */
   reset: () => void;
-  /** 必裝身體三件 + 選裝 8 件各 50% + (上衣+褲子) vs 套服 二擇一 */
+  /** 必裝身體三件 + 選裝 9 件各 50% + (上衣+褲子) vs 套服 二擇一 */
   randomize: () => void;
-  setGender: (gender: Gender) => void;
   setStanceId: (id: string) => void;
   setAnimated: (animated: boolean) => void;
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
@@ -62,7 +57,6 @@ export const useSimulator = create<SimulatorState>()(
     (set, get) => ({
       equipped: {},
       catalog: {},
-      gender: "male",
       stanceId: DEFAULT_STANCE,
       animated: DEFAULT_ANIMATED,
       generation: 0,
@@ -105,7 +99,7 @@ export const useSimulator = create<SimulatorState>()(
         for (const slot of slots) {
           const cache = state.catalog[slot];
           if (cache?.status === "success") {
-            const item = pickRandom(filterByGender(cache.items, slot, state.gender));
+            const item = pickRandom(cache.items);
             if (item) equipped[slot] = item;
           } else {
             slotsToFetch.push(slot);
@@ -115,12 +109,6 @@ export const useSimulator = create<SimulatorState>()(
         for (const slot of slotsToFetch) {
           void get().loadSlot(slot, { randomize: true });
         }
-      },
-
-      setGender: (gender) => {
-        if (get().gender === gender) return;
-        set({ gender });
-        get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD[gender]);
       },
 
       setStanceId: (id) => {
@@ -160,7 +148,7 @@ export const useSimulator = create<SimulatorState>()(
       },
 
       loadDefault: () => {
-        get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD[get().gender]);
+        get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD);
       },
 
       loadSlot: async (slot, options = {}) => {
@@ -171,7 +159,7 @@ export const useSimulator = create<SimulatorState>()(
         if (cached?.status === "loading") return;
         if (cached?.status === "success") {
           if (randomize) {
-            const item = pickRandom(filterByGender(cached.items, slot, get().gender));
+            const item = pickRandom(cached.items);
             if (item) tryWriteRandomized(set, slot, item, startGen);
           }
           return;
@@ -195,7 +183,7 @@ export const useSimulator = create<SimulatorState>()(
               state.generation === startGen &&
               !state.equipped[slot]
             ) {
-              const random = pickRandom(filterByGender(items, slot, state.gender));
+              const random = pickRandom(items);
               if (random) nextEquipped = { ...nextEquipped, [slot]: random };
             }
             return {
@@ -224,7 +212,6 @@ export const useSimulator = create<SimulatorState>()(
       skipHydration: true,
       partialize: (state) => ({
         equipped: state.equipped,
-        gender: state.gender,
         stanceId: state.stanceId,
         animated: state.animated,
       }),
@@ -276,7 +263,7 @@ async function upgradeStubNames(
   if (updates.length === 0) return;
 
   set((state) => {
-    // 期間 reset / 切性別 / 載入別套 → 整批 generation 失效,丟棄
+    // 期間 reset / randomize / 載入別套 → 整批 generation 失效,丟棄
     if (state.generation !== startGen) return {};
     const next = { ...state.equipped };
     for (const u of updates) {
