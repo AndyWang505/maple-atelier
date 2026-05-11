@@ -28,9 +28,7 @@ export const BASIC_STANCES = [
 
 // 標籤慣例:swing* / stab* 數字是 frame index(1/2/3 是同動畫的不同幀),
 // shoot* 後綴是武器類別(拳 / 弓 / 槍),不是同一動作的不同幀。
-/**
- * maplestory.io 的 face item 內建表情 frame,透過 `animationName` 帶進 item entry。
- */
+/** maplestory.io 的 face item 內建表情 frame,透過 `animationName` 帶進 item entry。 */
 export interface ExpressionDef {
   /** maplestory.io animationName value */
   id: string;

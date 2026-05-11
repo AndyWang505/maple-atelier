@@ -21,12 +21,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import type { CatalogItem, Slot } from "@/types/maplestory";
 import { useSimulator } from "@/store/simulator";
 import { EXPRESSIONS } from "@/lib/preview-config";
-import {
-  earFlagsForId,
-  getCharacterRenderUrl,
-  isSyntheticSlot,
-} from "@/lib/maplestory";
-import { ItemIcon } from "@/components/ui/ItemIcon";
 import { ItemTile } from "@/components/simulator/ItemTile";
 import {
   SLOT_LABELS,
@@ -133,41 +127,6 @@ export default function ItemPicker() {
   });
 
   const equippedAtActive = activeSlot ? equipped[activeSlot] : undefined;
-
-  const previewItems = useMemo(
-    () =>
-      Object.values(equipped).flatMap((item) =>
-        item && !isSyntheticSlot(item.slot)
-          ? [{
-              itemId: item.id,
-              region: item.region,
-              version: item.version,
-              slot: item.slot,
-            }]
-          : [],
-      ),
-    [equipped],
-  );
-  const earFlags = useMemo(
-    () => earFlagsForId(equipped.ear?.id),
-    [equipped.ear?.id],
-  );
-  const emotionPreviewUrl = (animationName: string) => {
-    const items = previewItems.map(({ slot, ...rest }) => ({
-      ...rest,
-      ...(slot === "face" ? { animationName } : {}),
-    }));
-    return getCharacterRenderUrl(items, {
-      skin: equipped.skin?.id,
-      skinRegion: equipped.skin?.region,
-      skinVersion: equipped.skin?.version,
-      stance: "stand1",
-      frame: 0,
-      renderMode: 1,
-      resize: 2,
-      ...earFlags,
-    });
-  };
 
   const handleTileClick = (groupRep: CatalogItem) => {
     if (!activeSlot || !isGrouped) {
@@ -330,23 +289,16 @@ export default function ItemPicker() {
                   type="button"
                   onClick={() => setExpression(e.id)}
                   title={e.label}
-                  className={`flex flex-col items-center p-3 rounded-lg border transition-colors ${
+                  className={`flex flex-col items-center justify-center gap-0.5 p-3 rounded-lg border transition-colors min-h-[72px] ${
                     isSelected
                       ? "border-amber-400 bg-amber-50"
                       : "border-zinc-200 bg-white hover:border-sky-400"
                   }`}
                 >
-                  <ItemIcon
-                    src={emotionPreviewUrl(e.id)}
-                    alt={e.label}
-                    className="w-20 h-20 object-contain mb-1.5"
-                    style={{ imageRendering: "pixelated" }}
-                    loading="lazy"
-                  />
-                  <span className="text-[11px] leading-tight text-zinc-700 truncate max-w-full">
+                  <span className="text-sm leading-tight text-zinc-800 truncate max-w-full">
                     {e.label}
                   </span>
-                  <span className="mt-0.5 text-[10px] leading-tight text-zinc-400 truncate max-w-full">
+                  <span className="text-[11px] leading-tight text-zinc-500 truncate max-w-full">
                     {e.id}
                   </span>
                 </button>

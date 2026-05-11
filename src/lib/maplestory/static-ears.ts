@@ -14,8 +14,8 @@ export const EAR_HIGH_LEF = 90003;
 export const STATIC_EAR_ITEMS: ReadonlyArray<CatalogItem> = [
   { id: EAR_NORMAL,   name: "一般",       slot: "ear", isCash: false, requiredGender: 2 },
   { id: EAR_MERC,     name: "精靈",       slot: "ear", isCash: false, requiredGender: 2 },
-  { id: EAR_LEF,      name: "伊利恩",     slot: "ear", isCash: false, requiredGender: 2 },
-  { id: EAR_HIGH_LEF, name: "高級伊利恩", slot: "ear", isCash: false, requiredGender: 2 },
+  { id: EAR_LEF,      name: "木雷普",     slot: "ear", isCash: false, requiredGender: 2 },
+  { id: EAR_HIGH_LEF, name: "亥雷普", slot: "ear", isCash: false, requiredGender: 2 },
 ];
 
 type EarFlag = "showears" | "showLefEars" | "showHighLefEars";
