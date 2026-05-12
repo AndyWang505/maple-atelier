@@ -20,7 +20,6 @@ import ListSubheader from "@mui/material/ListSubheader";
 import CircularProgress from "@mui/material/CircularProgress";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlined";
 import type { OutfitPayload } from "@/db/schema";
-import { useSimulator } from "@/store/simulator";
 import { outfitFullUrl } from "@/lib/outfit-preview";
 import {
   ATTACK_STANCES,
@@ -64,7 +63,6 @@ export default function OutfitDetail({
   itemInfo,
 }: OutfitDetailProps) {
   const router = useRouter();
-  const loadOutfit = useSimulator((s) => s.loadOutfit);
   const [copied, setCopied] = useState(false);
   const { upvotes, liked, toggle: handleLike } = useOutfitLike({
     outfitId: outfit.id,
@@ -96,7 +94,6 @@ export default function OutfitDetail({
   };
 
   const handleOpen = () => {
-    loadOutfit(outfit.payload);
     router.push("/simulator");
   };
 

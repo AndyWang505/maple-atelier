@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import CharacterPreview from "@/components/simulator/CharacterPreview";
 import ItemPicker from "@/components/simulator/ItemPicker";
 import EquipmentSlots from "@/components/simulator/EquipmentSlots";
 import SaveOutfitFab from "@/components/simulator/SaveOutfitFab";
 import { useSimulator } from "@/store/simulator";
+import { useApiOutfit } from "@/lib/api/hooks/use-api-outfits";
 
 type SparkleSpec = {
   pos: string;
@@ -102,44 +105,76 @@ function Dot({ pos, cls }: DotSpec) {
   );
 }
 
-export default function SimulatorPage() {
-  const initOnce = useRef(false);
+function SimulatorContent() {
+  const searchParams = useSearchParams();
+  const rawEdit = searchParams.get("edit");
+  const editId =
+    rawEdit !== null && Number.isFinite(Number(rawEdit)) ? Number(rawEdit) : null;
 
-  // Rehydrate persist 後若仍無裝備才載入預設 — 保留 loadOutfit 已帶入或 persist 還原的搭配
+  const { data: session } = useSession();
+  const { data: editOutfit } = useApiOutfit(editId);
+  const loadOutfit = useSimulator((s) => s.loadOutfit);
+
+  const initOnce = useRef(false);
+  const appliedEditId = useRef<number | null>(null);
+
+  // Draft mode: rehydrate localStorage once on mount (skipped when edit param present,
+  // so API data doesn't race with localStorage restore).
   useEffect(() => {
+    if (editId !== null) return;
     if (initOnce.current) return;
     initOnce.current = true;
     void useSimulator.persist.rehydrate()?.then(() => {
       const { equipped, loadDefault } = useSimulator.getState();
       if (Object.keys(equipped).length === 0) loadDefault();
     });
+    // intentionally only runs on mount; editId is the correct value at that point
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Edit mode: apply the fetched outfit to the simulator once per editId
+  useEffect(() => {
+    if (!editOutfit || appliedEditId.current === editId) return;
+    appliedEditId.current = editId;
+    loadOutfit(editOutfit.payload);
+  }, [editOutfit, editId, loadOutfit]);
+
+  // "儲存" only appears when the logged-in user owns the outfit being edited
+  const ownedEditId =
+    editId !== null && editOutfit?.userId === session?.user?.id ? editId : null;
 
   return (
     <>
-      <div className="relative overflow-hidden flex-1 bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
-        {/* 底部極光帶 */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-r from-yellow-100/40 via-emerald-100/40 to-sky-200/40 blur-2xl"
-        />
-
-        {SPARKLES.map((s) => (
-          <Sparkle key={s.pos} {...s} />
-        ))}
-        {DOTS.map((d) => (
-          <Dot key={d.pos} {...d} />
-        ))}
-
-        <div className="relative container mx-auto max-w-7xl px-4 pt-4 pb-12 sm:pb-16 grid gap-4 md:grid-cols-[1fr_1.5fr] items-start">
-          <div className="flex flex-col gap-4">
-            <CharacterPreview />
-            <EquipmentSlots />
-          </div>
-          <ItemPicker />
+      <div className="relative container mx-auto max-w-7xl px-4 pt-4 pb-12 sm:pb-16 grid gap-4 md:grid-cols-[1fr_1.5fr] items-start">
+        <div className="flex flex-col gap-4">
+          <CharacterPreview />
+          <EquipmentSlots />
         </div>
+        <ItemPicker />
       </div>
-      <SaveOutfitFab />
+      <SaveOutfitFab editId={ownedEditId} />
     </>
+  );
+}
+
+export default function SimulatorPage() {
+  return (
+    <div className="relative overflow-hidden flex-1 bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
+      {/* 底部極光帶 */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-r from-yellow-100/40 via-emerald-100/40 to-sky-200/40 blur-2xl"
+      />
+      {SPARKLES.map((s) => (
+        <Sparkle key={s.pos} {...s} />
+      ))}
+      {DOTS.map((d) => (
+        <Dot key={d.pos} {...d} />
+      ))}
+      {/* Suspense required because SimulatorContent uses useSearchParams */}
+      <Suspense>
+        <SimulatorContent />
+      </Suspense>
+    </div>
   );
 }

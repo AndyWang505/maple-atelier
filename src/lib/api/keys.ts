@@ -17,6 +17,7 @@ export const KEYS = {
     return qs ? `/api/outfits/public?${qs}` : "/api/outfits/public";
   },
   myOutfits: (): string => "/api/outfits?mine=1",
+  outfitById: (id: number): string => `/api/outfits/${id}`,
   topTags: (limit = 20): string => `/api/tags?limit=${limit}`,
 } as const;
 

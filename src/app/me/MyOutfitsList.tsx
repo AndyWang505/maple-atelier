@@ -15,7 +15,6 @@ import EditIcon from "@mui/icons-material/Edit";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
 import Skeleton from "@mui/material/Skeleton";
-import { useSimulator } from "@/store/simulator";
 import OutfitCard from "@/components/OutfitCard";
 import OutfitCardSkeleton from "@/components/OutfitCardSkeleton";
 import { useToast } from "@/components/ToastProvider";
@@ -44,7 +43,6 @@ export default function MyOutfitsList({ fallback }: Props) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const toast = useToast();
-  const loadOutfit = useSimulator((s) => s.loadOutfit);
   const router = useRouter();
 
   const handleConfirmDelete = async () => {
@@ -68,8 +66,7 @@ export default function MyOutfitsList({ fallback }: Props) {
   };
 
   const handleOpen = (row: MyOutfitRow) => {
-    loadOutfit(row.payload);
-    router.push("/simulator");
+    router.push(`/simulator?edit=${row.id}`);
   };
 
   const handleEditSubmit = async (

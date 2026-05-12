@@ -4,6 +4,7 @@ import type {
   CreateOutfitBody,
   CreateOutfitResponse,
   MyOutfitRow,
+  OutfitDetailRow,
   PublicOutfitsQuery,
   PublicOutfitsResponse,
   UpdateOutfitBody,
@@ -30,3 +31,6 @@ export const updateOutfit = (id: number, body: UpdateOutfitBody) =>
 
 export const createOutfit = (body: CreateOutfitBody) =>
   apiPost<CreateOutfitResponse>("/api/outfits", body);
+
+export const getOutfitById = (id: number) =>
+  apiJson<OutfitDetailRow>(KEYS.outfitById(id));

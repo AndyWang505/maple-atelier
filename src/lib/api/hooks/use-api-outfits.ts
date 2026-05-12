@@ -7,6 +7,7 @@ import {
   createOutfit,
   deleteOutfit,
   getMyOutfits,
+  getOutfitById,
   getPublicOutfits,
   updateOutfit,
   voteOutfit,
@@ -15,10 +16,19 @@ import { isPublicOutfitsKey, isTagsKey, KEYS } from "@/lib/api/keys";
 import type {
   CreateOutfitBody,
   MyOutfitRow,
+  OutfitDetailRow,
   PublicOutfitsQuery,
   PublicOutfitsResponse,
   UpdateOutfitBody,
 } from "@/lib/api/types";
+
+/** 模擬器 edit mode:SWR key 為 null 時不發請求 */
+export function useApiOutfit(id: number | null) {
+  return useSWR<OutfitDetailRow>(
+    id !== null ? KEYS.outfitById(id) : null,
+    () => getOutfitById(id!),
+  );
+}
 
 export function useApiPublicOutfits(
   params: PublicOutfitsQuery,
