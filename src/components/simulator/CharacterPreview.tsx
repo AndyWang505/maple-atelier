@@ -102,12 +102,27 @@ function PreviewImage({ url, scale, isDarkBg, animated }: PreviewImageProps) {
     };
   }, [url, animated, redraw]);
 
-  const previewSx: CSSProperties = {
+  const commonSx: CSSProperties = {
     imageRendering: "pixelated",
-    transform: `scale(${scale})`,
     transformOrigin: "center",
     transition: "transform 0.15s ease-out",
     visibility: status === "loaded" ? "visible" : "hidden",
+  };
+
+  // 動畫 GIF 無法用 canvas 繪製 — 改成絕對置中,保持原始像素尺寸,和 canvas 的行為對齊
+  const animatedSx: CSSProperties = {
+    ...commonSx,
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: `translate(-50%, -50%) scale(${scale})`,
+  };
+
+  const canvasSx: CSSProperties = {
+    ...commonSx,
+    transform: `scale(${scale})`,
+    width: "100%",
+    height: "100%",
   };
 
   return (
@@ -132,8 +147,7 @@ function PreviewImage({ url, scale, isDarkBg, animated }: PreviewImageProps) {
         <img
           src={url}
           alt="角色預覽"
-          className="w-full h-full object-contain"
-          style={previewSx}
+          style={animatedSx}
           onLoad={() => setStatus("loaded")}
           onError={() => setStatus("error")}
         />
@@ -143,7 +157,7 @@ function PreviewImage({ url, scale, isDarkBg, animated }: PreviewImageProps) {
           width={CANVAS_W}
           height={CANVAS_H}
           aria-label="角色預覽"
-          style={{ ...previewSx, width: "100%", height: "100%" }}
+          style={canvasSx}
         />
       )}
     </div>
