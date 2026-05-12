@@ -66,7 +66,7 @@ export default function OutfitDetail({
   const router = useRouter();
   const loadOutfit = useSimulator((s) => s.loadOutfit);
   const [copied, setCopied] = useState(false);
-  const { upvotes, liked, pending, toggle: handleLike } = useOutfitLike({
+  const { upvotes, liked, toggle: handleLike } = useOutfitLike({
     outfitId: outfit.id,
     initialUpvotes: outfit.upvotes,
     initialLiked,
@@ -205,15 +205,16 @@ export default function OutfitDetail({
         <button
             type="button"
             onClick={() => void handleLike()}
-            disabled={pending}
             title={getLikeTooltip({ isOwnOutfit, isAuthenticated, liked })}
             className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-full border font-semibold transition ${
+              isOwnOutfit ? "cursor-not-allowed" : "cursor-pointer"
+            } ${
               liked
                 ? "bg-maple-red/10 border-maple-red/30 text-maple-red hover:bg-maple-red/15"
                 : "bg-white border-zinc-300 text-zinc-700 hover:border-maple-red/40 hover:text-maple-red"
             } ${
               isOwnOutfit
-                ? "cursor-not-allowed opacity-60 hover:bg-white hover:border-zinc-300 hover:text-zinc-700"
+                ? "opacity-60 hover:bg-white hover:border-zinc-300 hover:text-zinc-700"
                 : ""
             }`}
           >

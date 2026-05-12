@@ -26,7 +26,7 @@ export default function LikeButton({
   isAuthenticated,
   isOwnOutfit,
 }: LikeButtonProps) {
-  const { upvotes, liked, pending, toggle } = useOutfitLike({
+  const { upvotes, liked, toggle } = useOutfitLike({
     outfitId,
     initialUpvotes,
     initialLiked,
@@ -45,7 +45,6 @@ export default function LikeButton({
       <IconButton
         size="small"
         onClick={() => void toggle()}
-        disabled={pending}
         aria-label={liked ? "取消推" : "推"}
         title={tooltip}
         sx={{

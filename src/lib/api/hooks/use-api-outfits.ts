@@ -44,15 +44,15 @@ const revalidatePublicAndTags = () =>
     globalMutate(isTagsKey, undefined, { revalidate: true }),
   ]);
 
-/** Key 帶 outfitId,避免 /explore 多張 LikeButton 共用 isMutating 互相 disable */
+/**
+ * Key 帶 outfitId 避免 /explore 多張 LikeButton 共用 isMutating。
+ * 刻意不 globalMutate publicOutfits — 重抓會讓 server 依 upvotes 重排,卡片位置會跳。
+ * 樂觀 UI 已在 useOutfitLike 處理,下次 mount / focus 自然 revalidate 即可。
+ */
 export function useApiVoteOutfit(outfitId: number) {
   return useSWRMutation(
     ["outfit-vote", outfitId] as const,
-    async (_key, { arg }: { arg: { liked: boolean } }) => {
-      const result = await voteOutfit(outfitId, arg.liked);
-      void globalMutate(isPublicOutfitsKey, undefined, { revalidate: true });
-      return result;
-    },
+    (_key, { arg }: { arg: { liked: boolean } }) => voteOutfit(outfitId, arg.liked),
   );
 }
 

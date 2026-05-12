@@ -4,7 +4,6 @@ import { getDb } from "@/db/client";
 import { outfits } from "@/db/schema";
 import { SITE_URL } from "@/lib/site-config";
 
-export const runtime = "edge";
 export const revalidate = 3600;
 
 const MAX_OUTFITS = 10_000;
