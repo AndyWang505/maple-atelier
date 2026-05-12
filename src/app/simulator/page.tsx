@@ -107,41 +107,51 @@ function Dot({ pos, cls }: DotSpec) {
 
 function SimulatorContent() {
   const searchParams = useSearchParams();
+
   const rawEdit = searchParams.get("edit");
   const editId =
     rawEdit !== null && Number.isFinite(Number(rawEdit)) ? Number(rawEdit) : null;
 
+  // ?load=ID — load outfit as remix starting point, never shows "儲存"
+  const rawLoad = searchParams.get("load");
+  const loadId =
+    rawLoad !== null && Number.isFinite(Number(rawLoad)) ? Number(rawLoad) : null;
+
+  // fetch whichever ID is present; edit takes priority
+  const fetchId = editId ?? loadId;
+
   const { data: session } = useSession();
-  const { data: editOutfit } = useApiOutfit(editId);
+  const { data: fetchedOutfit } = useApiOutfit(fetchId);
   const loadOutfit = useSimulator((s) => s.loadOutfit);
 
   const initOnce = useRef(false);
-  const appliedEditId = useRef<number | null>(null);
+  const appliedFetchId = useRef<number | null>(null);
 
-  // Draft mode: rehydrate localStorage once on mount (skipped when edit param present,
+  // Draft mode: rehydrate localStorage once on mount (skipped when edit/load param present,
   // so API data doesn't race with localStorage restore).
   useEffect(() => {
-    if (editId !== null) return;
+    if (fetchId !== null) return;
     if (initOnce.current) return;
     initOnce.current = true;
     void useSimulator.persist.rehydrate()?.then(() => {
-      const { equipped, loadDefault } = useSimulator.getState();
+      const { equipped, loadDefault, upgradeStubs } = useSimulator.getState();
       if (Object.keys(equipped).length === 0) loadDefault();
+      else upgradeStubs();
     });
-    // intentionally only runs on mount; editId is the correct value at that point
+    // intentionally only runs on mount; fetchId is the correct value at that point
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Edit mode: apply the fetched outfit to the simulator once per editId
+  // Edit/load mode: apply the fetched outfit to the simulator once per fetchId
   useEffect(() => {
-    if (!editOutfit || appliedEditId.current === editId) return;
-    appliedEditId.current = editId;
-    loadOutfit(editOutfit.payload);
-  }, [editOutfit, editId, loadOutfit]);
+    if (!fetchedOutfit || appliedFetchId.current === fetchId) return;
+    appliedFetchId.current = fetchId;
+    loadOutfit(fetchedOutfit.payload);
+  }, [fetchedOutfit, fetchId, loadOutfit]);
 
-  // "儲存" only appears when the logged-in user owns the outfit being edited
+  // "儲存" only appears when ?edit is set AND the logged-in user owns the outfit
   const ownedEditId =
-    editId !== null && editOutfit?.userId === session?.user?.id ? editId : null;
+    editId !== null && fetchedOutfit?.userId === session?.user?.id ? editId : null;
 
   return (
     <>
@@ -159,7 +169,7 @@ function SimulatorContent() {
 
 export default function SimulatorPage() {
   return (
-    <div className="relative overflow-hidden flex-1 bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
+    <div className="relative overflow-hidden flex-1 min-h-[500px] bg-gradient-to-b from-sky-300/80 via-sky-100 to-cyan-100">
       {/* 底部極光帶 */}
       <div
         aria-hidden

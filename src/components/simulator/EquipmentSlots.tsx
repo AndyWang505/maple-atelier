@@ -5,7 +5,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ShuffleIcon from "@mui/icons-material/Shuffle";
 import Button from "@mui/material/Button";
-import { useSimulator } from "@/store/simulator";
+import { isStub as isStubItem, useSimulator } from "@/store/simulator";
 import { getSlotIconUrl } from "@/lib/maplestory";
 import { ItemIcon } from "@/components/ui/ItemIcon";
 import { SLOT_LABELS, SLOT_SECTIONS } from "@/lib/slot-taxonomy";
@@ -68,7 +68,10 @@ export default function EquipmentSlots() {
                           getColorIndex(slot, a.id) - getColorIndex(slot, b.id),
                       )
                   : [];
-                const displayName = isColorSlot(slot)
+                const isStub = isStubItem(item);
+                const displayName = isStub
+                  ? null
+                  : isColorSlot(slot)
                   ? stripColorName(item.name)
                   : item.name;
                 return (
@@ -86,7 +89,7 @@ export default function EquipmentSlots() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-zinc-500 flex items-center gap-2">
                           {SLOT_LABELS[slot]}
-                          {id === "equipment" && (
+                          {id === "equipment" && !isStub && (
                             <span
                               className={`inline-block px-1.5 py-0.5 text-[10px] font-medium rounded ${
                                 item.isCash
@@ -99,8 +102,14 @@ export default function EquipmentSlots() {
                           )}
                         </p>
                         <p className="text-sm truncate">
-                          {displayName}{" "}
-                          <span className="text-zinc-400">({item.id})</span>
+                          {displayName ? (
+                            <>
+                              {displayName}{" "}
+                              <span className="text-zinc-400">({item.id})</span>
+                            </>
+                          ) : (
+                            <span className="text-zinc-400">#{item.id}</span>
+                          )}
                         </p>
                       </div>
                       <IconButton

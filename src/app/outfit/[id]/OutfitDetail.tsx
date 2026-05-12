@@ -94,7 +94,7 @@ export default function OutfitDetail({
   };
 
   const handleOpen = () => {
-    router.push("/simulator");
+    router.push(`/simulator?load=${outfit.id}`);
   };
 
   return (

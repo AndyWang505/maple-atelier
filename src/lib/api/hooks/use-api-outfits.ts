@@ -7,11 +7,11 @@ import {
   createOutfit,
   deleteOutfit,
   getMyOutfits,
-  getOutfitById,
   getPublicOutfits,
   updateOutfit,
   voteOutfit,
 } from "@/lib/api/clients/outfits";
+import { apiJson } from "@/lib/api/fetcher";
 import { isPublicOutfitsKey, isTagsKey, KEYS } from "@/lib/api/keys";
 import type {
   CreateOutfitBody,
@@ -22,11 +22,11 @@ import type {
   UpdateOutfitBody,
 } from "@/lib/api/types";
 
-/** 模擬器 edit mode:SWR key 為 null 時不發請求 */
+/** 模擬器 edit/load mode:SWR key 為 null 時不發請求。fetcher 直接從 key 解 URL,避免 closure 捕捉外部 id */
 export function useApiOutfit(id: number | null) {
   return useSWR<OutfitDetailRow>(
     id !== null ? KEYS.outfitById(id) : null,
-    () => getOutfitById(id!),
+    (key: string) => apiJson<OutfitDetailRow>(key),
   );
 }
 

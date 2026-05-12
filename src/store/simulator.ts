@@ -11,7 +11,7 @@ import type { CatalogItem, Slot } from "@/types/maplestory";
 import { SLOTS } from "@/types/maplestory";
 
 /** stub item 的 sentinel:`name === "#" + id` 表示這是 loadOutfit 留下還沒升級成真名的占位 */
-const isStub = (item: CatalogItem) => item.name === `#${item.id}`;
+export const isStub = (item: CatalogItem) => item.name === `#${item.id}`;
 
 type Equipped = Partial<Record<Slot, CatalogItem>>;
 
@@ -53,6 +53,8 @@ interface SimulatorState {
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
   loadOutfit: (payload: OutfitPayload) => void;
   loadDefault: () => void;
+  /** 對目前 equipped 裡所有 stub 名稱發起升級請求(rehydrate 後補跑) */
+  upgradeStubs: () => void;
 }
 
 export const useSimulator = create<SimulatorState>()(
@@ -159,6 +161,10 @@ export const useSimulator = create<SimulatorState>()(
 
       loadDefault: () => {
         get().loadOutfit(DEFAULT_OUTFIT_PAYLOAD);
+      },
+
+      upgradeStubs: () => {
+        void upgradeStubNames(set, get, get().equipped);
       },
 
       loadSlot: async (slot, options = {}) => {
