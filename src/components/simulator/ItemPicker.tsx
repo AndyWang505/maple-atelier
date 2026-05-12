@@ -20,6 +20,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import type { CatalogItem, Slot } from "@/types/maplestory";
 import { useSimulator } from "@/store/simulator";
+import { useIsMobile } from "@/lib/hooks/use-breakpoint";
 import { EXPRESSIONS } from "@/lib/preview-config";
 import { ItemTile } from "@/components/simulator/ItemTile";
 import {
@@ -35,7 +36,6 @@ import {
   stripColorName,
 } from "@/lib/color-variants";
 
-const COLS = 5;
 const ROW_HEIGHT = 115;
 
 type CashFilter = "all" | "regular" | "cash";
@@ -43,6 +43,8 @@ type CashFilter = "all" | "regular" | "cash";
 export default function ItemPicker() {
   // @tanstack/react-virtual 回傳的函式無法被 React Compiler 安全 memo,顯式跳過
   "use no memo";
+
+  const cols = useIsMobile() ? 4 : 5;
 
   const [category, setCategory] = useState<SlotCategory>("appearance");
   // "expression" 是 virtual tab — 不是 item slot,選了會 setExpression 而不是 equip
@@ -120,7 +122,7 @@ export default function ItemPicker() {
   const parentRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line react-hooks/incompatible-library -- 已在 component 開頭以 "use no memo" 顯式 opt-out
   const rowVirtualizer = useVirtualizer({
-    count: Math.ceil(visible.length / COLS),
+    count: Math.ceil(visible.length / cols),
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 3,
@@ -338,12 +340,12 @@ export default function ItemPicker() {
             }}
           >
             {rowVirtualizer.getVirtualItems().map((vRow) => {
-              const start = vRow.index * COLS;
-              const rowItems = visible.slice(start, start + COLS);
+              const start = vRow.index * cols;
+              const rowItems = visible.slice(start, start + cols);
               return (
                 <div
                   key={vRow.key}
-                  className="grid grid-cols-5 gap-2 items-start"
+                  className={`grid gap-2 items-start ${cols === 4 ? "grid-cols-4" : "grid-cols-5"}`}
                   style={{
                     position: "absolute",
                     top: 0,
