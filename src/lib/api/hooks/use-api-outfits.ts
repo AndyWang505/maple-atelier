@@ -46,13 +46,30 @@ const revalidatePublicAndTags = () =>
 
 /**
  * Key 帶 outfitId 避免 /explore 多張 LikeButton 共用 isMutating。
- * 刻意不 globalMutate publicOutfits — 重抓會讓 server 依 upvotes 重排,卡片位置會跳。
- * 樂觀 UI 已在 useOutfitLike 處理,下次 mount / focus 自然 revalidate 即可。
+ * mutate 用 revalidate:false + updater fn — patch 既有 cache 裡那一筆 outfit
+ * 的 upvotes/liked,不重抓避免 server 依 upvotes 重排造成卡片跳位置;同時
+ * 上一頁回到 /explore 看到的快取也已是最新值,不會出現「我推過的不見了」。
  */
 export function useApiVoteOutfit(outfitId: number) {
   return useSWRMutation(
     ["outfit-vote", outfitId] as const,
-    (_key, { arg }: { arg: { liked: boolean } }) => voteOutfit(outfitId, arg.liked),
+    async (_key, { arg }: { arg: { liked: boolean } }) => {
+      const result = await voteOutfit(outfitId, arg.liked);
+      void globalMutate(
+        isPublicOutfitsKey,
+        (current?: PublicOutfitsResponse) =>
+          current && {
+            ...current,
+            rows: current.rows.map((r) =>
+              r.id === outfitId
+                ? { ...r, upvotes: result.upvotes, liked: result.liked }
+                : r,
+            ),
+          },
+        { revalidate: false },
+      );
+      return result;
+    },
   );
 }
 
