@@ -89,7 +89,7 @@ export const ATTACK_STANCES = [
 const BG_CARD_CLASS: Record<BgId, string> = {
   none: "bg-white/70",
   light: "bg-white/90",
-  dark: "bg-zinc-800/75",
+  dark: "bg-zinc-950/90",
 };
 
 export const getCardBgClass = (id: BgId): string => BG_CARD_CLASS[id];
