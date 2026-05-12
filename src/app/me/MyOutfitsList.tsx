@@ -220,7 +220,7 @@ export default function MyOutfitsList({ fallback }: Props) {
         <DialogTitle>刪除搭配</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ overflowWrap: "anywhere" }}>
-            刪除後將無法還原,確定要刪除「
+            刪除後將無法還原，確定要刪除「
             <strong className="text-zinc-900">{deleteTarget?.title}</strong>
             」嗎?
           </DialogContentText>

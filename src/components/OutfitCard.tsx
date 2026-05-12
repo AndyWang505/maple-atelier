@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Chip from "@mui/material/Chip";
 import type { OutfitPayload } from "@/db/schema";
-import { outfitFullUrl } from "@/lib/outfit-preview";
+import { outfitThumbnailUrl } from "@/lib/outfit-preview";
 import { tagChipSx } from "@/lib/mui/theme";
 
 export interface OutfitCardData {
@@ -34,17 +34,15 @@ export default function OutfitCard({
   onClick,
 }: OutfitCardProps) {
   const ImageBox = (
-    <div className="relative bg-zinc-50 rounded-lg h-56 overflow-hidden">
-      <div className="absolute inset-x-0 bottom-0 flex justify-center h-[92%]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={outfitFullUrl(outfit.payload)}
-          alt={outfit.title}
-          className="h-full w-auto max-w-none object-contain"
-          style={{ imageRendering: "pixelated" }}
-          loading="lazy"
-        />
-      </div>
+    <div className="relative aspect-square bg-gradient-to-br from-sky-50 via-white to-amber-50/40 rounded-lg overflow-hidden">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={outfitThumbnailUrl(outfit.payload)}
+        alt={outfit.title}
+        className="absolute inset-0 w-full h-full object-contain"
+        style={{ imageRendering: "pixelated" }}
+        loading="lazy"
+      />
     </div>
   );
 
