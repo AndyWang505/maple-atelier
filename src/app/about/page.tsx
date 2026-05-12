@@ -97,29 +97,29 @@ export default function AboutPage() {
             <code className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 text-sm">
               maplestory.io
             </code>
-            ,目前主要對應台版(TMS)。
-            部分裝備可能因 API 沒收錄或欄位問題沒被列出來,請見諒。
+            ，目前主要對應台版(TMS)。
+            部分裝備可能因 API 沒收錄或欄位問題沒被列出來，請見諒。
           </FAQ>
-          <FAQ q="模擬器的預覽 / icon 看起來跟遊戲不太一樣?">
+          <FAQ q="模擬器的預覽 / icon 看起來跟遊戲不太一樣？">
             角色 render 跟 item 縮圖都來自
             <code className="px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 text-sm">
               maplestory.io
             </code>
-            ,有幾個已知 API 限制:
+            ，有幾個已知 API 限制：
             <ul className="list-disc pl-5 mt-2 space-y-1.5 marker:text-maple-red">
               <li>
-                臉型 icon 跟角色頭上實際渲染的臉略不同 — icon 用該 face 的代表 frame,角色 render 用預設 frame。
+                選單裡的臉型縮圖跟角色身上實際顯示的臉可能長得不太一樣——縮圖和角色渲染用的是同一個臉型的不同畫面，這是資料來源本身的限制。
               </li>
               <li>
-                部分 item icon 顯示「?」是 maplestory.io 資料缺漏 — 裝備功能正常,只是縮圖載不到。
+                少數裝備縮圖會顯示「?」，是因為 maplestory.io 的圖庫裡剛好沒有這件裝備的圖片；裝備本身可以正常穿戴，只是預覽圖暫時顯示不出來。
               </li>
               <li>
-                沒有染料 / 混色預覽 — 這些 API 沒提供,長期可能透過 Nexon 官方 API 補上。
-              </li>
-              <li>
-                動作 / 表情清單是 maplestory.io 開放的子集,不是遊戲內全部。
+                動作和表情的選項沒有遊戲內那麼多，因為 maplestory.io 目前只提供了部分清單，完整的遊戲內容目前沒辦法全部取到。
               </li>
             </ul>
+            <p className="text-zinc-600 text-sm sm:text-base leading-relaxed mt-2">
+              未來可能考慮自建 API 或使用 Nexon 官方 API 補上遺漏的資料，不過這工程量浩大，短期內不太可能實現。
+            </p>
           </FAQ>
           <FAQ q="我可以儲存幾套搭配？">
             目前每位使用者最多儲存 <strong>20 套</strong>。

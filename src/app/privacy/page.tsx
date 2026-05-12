@@ -166,7 +166,7 @@ export default function PrivacyPage() {
         <p>問題回報、資料刪除請求、著作權通知，請透過：</p>
         <List>
           <li>
-            Email:{" "}
+            Email：{" "}
             <a
               href={`mailto:${SITE_LINKS.email}`}
               className="text-maple-red hover:underline"
@@ -175,14 +175,14 @@ export default function PrivacyPage() {
             </a>
           </li>
           <li>
-            GitHub:{" "}
+            GitHub：{" "}
             <a
               href={SITE_LINKS.github}
               target="_blank"
               rel="noopener noreferrer"
               className="text-maple-red hover:underline"
             >
-              開 issue
+              issue
             </a>
           </li>
         </List>
