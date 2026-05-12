@@ -5,12 +5,16 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ToastProvider from "@/components/ToastProvider";
 import SWRProvider from "@/components/SWRProvider";
-import { SITE_NAME, SITE_NAME_TC, SITE_URL } from "@/lib/site-config";
+import {
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  SITE_NAME,
+  SITE_NAME_TC,
+  SITE_URL,
+} from "@/lib/site-config";
 import "./globals.css";
 
 const SITE_TITLE = `${SITE_NAME} — ${SITE_NAME_TC}`;
-const SITE_DESCRIPTION =
-  "聚焦新楓之谷時裝搭配的社群空間。即時試穿裝備、儲存搭配，與其他玩家分享、瀏覽彼此的造型。";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -19,6 +23,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  keywords: [...SITE_KEYWORDS],
   applicationName: SITE_NAME,
   icons: {
     icon: "/maple-leaf.svg",
@@ -36,6 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
+    images: ["/opengraph-image"],
   },
   alternates: { canonical: "/" },
   robots: { index: true, follow: true },

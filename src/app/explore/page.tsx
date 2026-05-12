@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/db/client";
 import PageShell from "@/components/layout/PageShell";
@@ -7,8 +8,15 @@ import {
   parsePublicOutfitsParams,
 } from "@/lib/queries/public-outfits";
 import { queryTopTags } from "@/lib/queries/top-tags";
+import { SITE_NAME } from "@/lib/site-config";
 import ExploreClient, { EXPLORE_PAGE_SIZE } from "./ExploreClient";
 
+
+export const metadata: Metadata = {
+  title: "探索搭配",
+  description: `瀏覽其他楓友在 ${SITE_NAME}（楓葉工坊）分享的時裝搭配與紙娃娃造型，依熱門 / 趨勢 / 最新排序，或用標籤、關鍵字尋找靈感。`,
+  alternates: { canonical: "/explore" },
+};
 
 interface ExplorePageProps {
   searchParams: Promise<{

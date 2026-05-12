@@ -16,13 +16,38 @@ import HomeTagCloud from "@/components/HomeTagCloud";
 import RevealOnScroll from "@/components/RevealOnScroll";
 import PageShell from "@/components/layout/PageShell";
 import ArrowLink from "@/components/ui/ArrowLink";
-import { SITE_NAME_TC } from "@/lib/site-config";
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_NAME_TC,
+  SITE_TAGLINE,
+  SITE_URL,
+} from "@/lib/site-config";
 
 export const revalidate = 30;
 
 const HOT_LIMIT = 12;
 const LATEST_LIMIT = 12;
 const TAG_LIMIT = 20;
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": SITE_URL,
+  name: SITE_NAME,
+  alternateName: SITE_NAME_TC,
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  inLanguage: "zh-Hant",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: {
+      "@type": "EntryPoint",
+      urlTemplate: `${SITE_URL}/explore?q={search_term_string}`,
+    },
+    "query-input": "required name=search_term_string",
+  },
+};
 
 const showcaseSelect = {
   id: outfits.id,
@@ -61,6 +86,10 @@ export default async function Home() {
 
   return (
     <div className="relative bg-[linear-gradient(180deg,rgb(254_215_170/0.18)_0%,#fff_20%,#fff_80%,rgb(253_186_116/0.18)_100%)]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+      />
       <PageShell className="space-y-14">
       <section className="relative overflow-hidden rounded-3xl animate-gradient bg-gradient-to-br from-stone-950 via-zinc-900 to-stone-950 px-6 py-16 sm:py-24 text-center">
         <div
@@ -101,7 +130,7 @@ export default async function Home() {
             className="mt-4 text-zinc-400 max-w-md mx-auto leading-relaxed animate-fade-in-up"
             style={{ animationDelay: "220ms" }}
           >
-            聚焦新楓之谷時裝搭配的社群空間。即時試穿裝備、儲存搭配，與其他玩家分享、瀏覽彼此的造型。
+            {SITE_TAGLINE}
           </p>
           <div
             className="mt-10 flex justify-center gap-3 flex-wrap animate-fade-in-up"
