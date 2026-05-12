@@ -4,7 +4,8 @@ import { getDb } from "@/db/client";
 import { outfits } from "@/db/schema";
 import { SITE_URL } from "@/lib/site-config";
 
-export const revalidate = 3600;
+// NOTE: D1 query 需要 worker request context,build 時無法 prerender;每次請求動態跑
+export const dynamic = "force-dynamic";
 
 const MAX_OUTFITS = 10_000;
 
