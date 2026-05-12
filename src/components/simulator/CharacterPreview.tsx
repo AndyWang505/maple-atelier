@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -32,6 +32,9 @@ import {
 
 type ImageStatus = "loading" | "loaded" | "error";
 
+const CANVAS_W = 192;
+const CANVAS_H = 192;
+
 const STANCE_MENU_PROPS = {
   slotProps: { paper: { sx: { maxHeight: 420 } } },
 } as const;
@@ -40,12 +43,75 @@ interface PreviewImageProps {
   url: string;
   scale: number;
   isDarkBg: boolean;
+  animated: boolean;
 }
 
-function PreviewImage({ url, scale, isDarkBg }: PreviewImageProps) {
+function PreviewImage({ url, scale, isDarkBg, animated }: PreviewImageProps) {
   const [status, setStatus] = useState<ImageStatus>("loading");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  const redraw = useCallback(() => {
+    const canvas = canvasRef.current;
+    const img = imgRef.current;
+    if (!canvas || !img || canvas.width === 0 || canvas.height === 0) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(
+      img,
+      Math.round((canvas.width - img.naturalWidth) / 2),
+      Math.round((canvas.height - img.naturalHeight) / 2),
+    );
+  }, []);
+
+  // canvas buffer 跟著 CSS 顯示尺寸同步,避免 CSS 拉伸造成模糊;resize 時重繪
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ro = new ResizeObserver(() => {
+      const w = canvas.offsetWidth;
+      const h = canvas.offsetHeight;
+      if (w > 0 && h > 0 && (canvas.width !== w || canvas.height !== h)) {
+        canvas.width = w;
+        canvas.height = h;
+        redraw();
+      }
+    });
+    ro.observe(canvas);
+    return () => ro.disconnect();
+  }, [redraw]);
+
+  // 靜態模式:用 canvas 置中繪製,避免 object-contain 的 aspect ratio 縮放讓角色跳位。
+  // 動畫 GIF 無法逐幀 decode,保留 <img> 原有行為。
+  useEffect(() => {
+    if (animated) return;
+    imgRef.current = null;
+    const img = new Image();
+    img.onload = () => {
+      imgRef.current = img;
+      redraw();
+      setStatus("loaded");
+    };
+    img.onerror = () => setStatus("error");
+    img.src = url;
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [url, animated, redraw]);
+
+  const previewSx: CSSProperties = {
+    imageRendering: "pixelated",
+    transform: `scale(${scale})`,
+    transformOrigin: "center",
+    transition: "transform 0.15s ease-out",
+    visibility: status === "loaded" ? "visible" : "hidden",
+  };
+
   return (
-    <div className="relative w-48 h-48 flex items-end justify-center">
+    <div className="absolute inset-0">
       {status === "loading" && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
           <CircularProgress size={36} thickness={4} color="primary" />
@@ -61,22 +127,25 @@ function PreviewImage({ url, scale, isDarkBg }: PreviewImageProps) {
           <span>圖片載入失敗</span>
         </div>
       )}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={url}
-        alt="角色預覽"
-        className="max-w-full max-h-full object-contain"
-        style={{
-          imageRendering: "pixelated",
-          transform: `scale(${scale})`,
-          // 從腳往上縮放;角色腳永遠站在同一條線上,換裝 / 換 stance / zoom 都不會「亂跑」
-          transformOrigin: "bottom center",
-          transition: "transform 0.15s ease-out",
-          visibility: status === "loaded" ? "visible" : "hidden",
-        }}
-        onLoad={() => setStatus("loaded")}
-        onError={() => setStatus("error")}
-      />
+      {animated ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={url}
+          alt="角色預覽"
+          className="w-full h-full object-contain"
+          style={previewSx}
+          onLoad={() => setStatus("loaded")}
+          onError={() => setStatus("error")}
+        />
+      ) : (
+        <canvas
+          ref={canvasRef}
+          width={CANVAS_W}
+          height={CANVAS_H}
+          aria-label="角色預覽"
+          style={{ ...previewSx, width: "100%", height: "100%" }}
+        />
+      )}
     </div>
   );
 }
@@ -189,8 +258,8 @@ export default function CharacterPreview() {
         </div>
       </div>
 
-      <div className="relative z-0 flex-1 flex items-end justify-center pb-6">
-        <PreviewImage key={url} url={url} scale={scale} isDarkBg={isDarkBg} />
+      <div className="relative z-0 flex-1 min-h-[280px]">
+        <PreviewImage key={url} url={url} scale={scale} isDarkBg={isDarkBg} animated={animated} />
       </div>
 
       <div className="relative z-20 flex items-center justify-between gap-2 flex-wrap">
