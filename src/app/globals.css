@@ -23,6 +23,11 @@
   --maple-leaf: #e87a4f;
 }
 
+body {
+  background-image: linear-gradient(to bottom, #edf2f7 0%, #fafafa 45%, #fce8d4 100%);
+  background-attachment: fixed;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

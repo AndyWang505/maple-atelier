@@ -153,7 +153,7 @@ export default async function OutfitPage({ params }: OutfitPageProps) {
     : null;
 
   return (
-    <PageShell width="content" bg="soft">
+    <PageShell width="content">
       {jsonLd && (
         <script
           type="application/ld+json"

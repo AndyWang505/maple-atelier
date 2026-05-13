@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <PageShell width="content" bg="soft" className="space-y-12">
+    <PageShell width="content" className="space-y-12">
       {/* 標題 — 縮小版深色 hero,沿用首頁視覺語言 */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-950 via-zinc-900 to-stone-950 px-6 py-12 sm:py-16 text-center">
         <div

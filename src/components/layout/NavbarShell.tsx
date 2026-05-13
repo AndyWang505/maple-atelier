@@ -27,6 +27,7 @@ const APP_BAR_SX = {
   backdropFilter: "blur(12px)",
   WebkitBackdropFilter: "blur(12px)",
   borderBottom: "1px solid rgba(228, 228, 231, 0.6)",
+  boxShadow: "0 1px 8px 0 rgba(0, 0, 0, 0.06)",
 } as const;
 
 const TOOLBAR_SX = { maxWidth: "1280px", width: "100%", mx: "auto" } as const;

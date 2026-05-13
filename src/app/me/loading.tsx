@@ -4,7 +4,7 @@ import OutfitCardSkeleton from "@/components/OutfitCardSkeleton";
 
 export default function Loading() {
   return (
-    <PageShell bg="soft">
+    <PageShell>
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6 sm:mb-8">
         我的衣櫃
       </h1>

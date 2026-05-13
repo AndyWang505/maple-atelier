@@ -3,7 +3,7 @@ import PageShell from "@/components/layout/PageShell";
 
 export default function Loading() {
   return (
-    <PageShell width="content" bg="soft">
+    <PageShell width="content">
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Skeleton variant="circular" width={32} height={32} />

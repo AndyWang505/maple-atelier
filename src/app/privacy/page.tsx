@@ -12,7 +12,7 @@ const LAST_UPDATED = "2026-05-10";
 
 export default function PrivacyPage() {
   return (
-    <PageShell width="content" bg="soft" className="space-y-10">
+    <PageShell width="content" className="space-y-10">
       <header className="space-y-2">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
           隱私政策

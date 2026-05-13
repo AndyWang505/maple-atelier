@@ -49,7 +49,7 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
   ]);
 
   return (
-    <PageShell bg="soft">
+    <PageShell>
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6 sm:mb-8">
         探索搭配
       </h1>
