@@ -12,6 +12,7 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import LockIcon from "@mui/icons-material/Lock";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
@@ -44,6 +45,7 @@ interface OutfitDetailProps {
     payload: OutfitPayload;
     tags: string[] | null;
     upvotes: number;
+    views: number;
     isPublic: boolean;
     createdAt: Date;
     authorName: string | null;
@@ -199,6 +201,14 @@ export default function OutfitDetail({
           </h1>
           <span className="text-xs text-zinc-400 shrink-0">#{outfit.id}</span>
         </div>
+        <span
+          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-zinc-50 border border-zinc-200 text-zinc-600 text-sm"
+          title={`${outfit.views} 次瀏覽`}
+          aria-label={`${outfit.views} 次瀏覽`}
+        >
+          <VisibilityOutlinedIcon fontSize="small" />
+          <span className="tabular-nums">{outfit.views}</span>
+        </span>
         <button
             type="button"
             onClick={() => void handleLike()}

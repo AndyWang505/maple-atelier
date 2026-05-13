@@ -91,6 +91,7 @@ export const outfits = sqliteTable(
     tags: text("tags", { mode: "json" }).$type<string[]>().default([]),
     isPublic: integer("is_public", { mode: "boolean" }).notNull().default(false),
     upvotes: integer("upvotes").notNull().default(0),
+    views: integer("views").notNull().default(0),
     createdAt: integer("created_at", { mode: "timestamp" })
       .notNull()
       .$defaultFn(() => new Date()),

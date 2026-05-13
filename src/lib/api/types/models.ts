@@ -10,6 +10,7 @@ export interface OutfitDetailRow {
   tags: string[] | null;
   isPublic: boolean;
   upvotes: number;
+  views: number;
 }
 
 interface OutfitBase {
@@ -19,6 +20,7 @@ interface OutfitBase {
   payload: OutfitPayload;
   tags: string[] | null;
   upvotes: number;
+  views: number;
   isPublic: boolean;
   createdAt: number;
   updatedAt: number;

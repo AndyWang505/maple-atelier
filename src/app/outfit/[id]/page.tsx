@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { auth } from "@/lib/auth";
 import { getDb } from "@/db/client";
 import {
@@ -14,6 +16,7 @@ import { fetchSlotItemInfo, type ItemInfo } from "@/lib/maplestory";
 import type { Slot } from "@/types/maplestory";
 import PageShell from "@/components/layout/PageShell";
 import { authorNameSql } from "@/lib/queries/utils";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { SITE_NAME, SITE_URL } from "@/lib/site-config";
 import OutfitDetail from "./OutfitDetail";
 
@@ -77,6 +80,51 @@ export async function generateMetadata(
 // 永遠不會在 votes.userId 出現的 sentinel,讓匿名 LEFT JOIN 一定 miss
 const NO_USER_SENTINEL = "__none__";
 
+// Bump outfit views on real document/RSC navigation. Skips own / private / Link-prefetch,
+// and dedups per (viewer, outfit) per hour via the rate_limits table. Returns the value to display.
+async function maybeBumpViews(
+  db: ReturnType<typeof getDb>,
+  args: {
+    outfitId: number;
+    currentViews: number;
+    isPublic: boolean;
+    isOwner: boolean;
+    viewerUserId: string | null;
+  },
+): Promise<number> {
+  if (!args.isPublic || args.isOwner) return args.currentViews;
+
+  const h = await headers();
+  // Next.js sends this header for `<Link>` hover prefetch — must not count those as real views.
+  if (h.get("next-router-prefetch") === "1") return args.currentViews;
+
+  const ip =
+    h.get("cf-connecting-ip") ??
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+  const viewerKey = args.viewerUserId ? `u:${args.viewerUserId}` : `ip:${ip}`;
+
+  const rl = await checkRateLimit(db, {
+    scope: `view:${args.outfitId}:${viewerKey}`,
+    windowSec: 3600,
+    max: 1,
+  });
+  if (!rl.ok) return args.currentViews;
+
+  const update = db
+    .update(outfits)
+    .set({ views: sql`${outfits.views} + 1` })
+    .where(eq(outfits.id, args.outfitId));
+  try {
+    const { ctx } = getCloudflareContext();
+    ctx.waitUntil(update);
+  } catch {
+    // dev / non-CF runtime: run inline so the count still moves
+    await update;
+  }
+  return args.currentViews + 1;
+}
+
 async function fetchItemInfoForPayload(
   payload: OutfitPayload,
 ): Promise<Record<number, ItemInfo>> {
@@ -115,6 +163,7 @@ export default async function OutfitPage({ params }: OutfitPageProps) {
       payload: outfits.payload,
       tags: outfits.tags,
       upvotes: outfits.upvotes,
+      views: outfits.views,
       isPublic: outfits.isPublic,
       createdAt: outfits.createdAt,
       authorName: authorNameSql,
@@ -137,7 +186,17 @@ export default async function OutfitPage({ params }: OutfitPageProps) {
 
   const itemInfo = await fetchItemInfoForPayload(rawRow.payload);
 
-  const { likedKey, ...row } = rawRow;
+  const views = await maybeBumpViews(db, {
+    outfitId: id,
+    currentViews: rawRow.views,
+    isPublic: rawRow.isPublic,
+    isOwner: rawRow.userId === me,
+    viewerUserId: me,
+  });
+
+  const { likedKey, ...rest } = rawRow;
+  // Spread first, then overwrite views with the (possibly bumped) value.
+  const row = { ...rest, views };
 
   // 只對公開搭配輸出 JSON-LD,避免私密內容外洩(雖然 schema bot 也未必爬得到)
   const jsonLd = row.isPublic

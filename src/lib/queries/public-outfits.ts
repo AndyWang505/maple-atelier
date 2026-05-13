@@ -76,6 +76,7 @@ export async function queryPublicOutfits(
     payload: outfits.payload,
     tags: outfits.tags,
     upvotes: outfits.upvotes,
+    views: outfits.views,
     isPublic: outfits.isPublic,
     createdAt: outfits.createdAt,
     updatedAt: outfits.updatedAt,
