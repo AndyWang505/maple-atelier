@@ -11,11 +11,17 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import type { SvgIconComponent } from "@mui/icons-material";
 import PageShell from "@/components/layout/PageShell";
 import ArrowLink from "@/components/ui/ArrowLink";
-import { SITE_LINKS, SITE_NAME, SITE_NAME_TC } from "@/lib/site-config";
+import { SITE_LINKS, SITE_NAME, SITE_NAME_TC, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "關於",
-  description: `${SITE_NAME} ${SITE_NAME_TC} — 製作動機、常見問題、聯絡方式與支持管道`,
+  description: "關於 Maple Atelier 楓葉工坊時裝搭配工具 - 在這裡可以了解本站定位、動機、常見問題、聯絡方式與問題回報。",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: `關於 | ${SITE_NAME}`,
+    description: "關於 Maple Atelier 楓葉工坊時裝搭配工具 - 在這裡可以了解本站定位、動機、常見問題、聯絡方式與問題回報。",
+    url: `${SITE_URL}/about`,
+  },
 };
 
 export default function AboutPage() {

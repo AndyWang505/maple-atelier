@@ -1,11 +1,17 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import PageShell from "@/components/layout/PageShell";
-import { SITE_LINKS, SITE_NAME } from "@/lib/site-config";
+import { SITE_LINKS, SITE_NAME, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "隱私政策",
-  description: `${SITE_NAME} 的資料蒐集、儲存、使用方式說明,以及使用者刪除 / 修改個人資料的方法。`,
+  description: `${SITE_NAME} 的資料蒐集、儲存、使用方式說明，以及使用者刪除 / 修改個人資料的方法。`,
+  alternates: { canonical: "/privacy" },
+  openGraph: {
+    title: `隱私政策 | ${SITE_NAME}`,
+    description: `${SITE_NAME} 的資料蒐集、儲存、使用方式說明，以及使用者刪除 / 修改個人資料的方法。`,
+    url: `${SITE_URL}/privacy`,
+  },
 };
 
 const LAST_UPDATED = "2026-05-10";
