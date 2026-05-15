@@ -11,7 +11,7 @@ export interface CreateOutfitBody {
 export type UpdateOutfitBody = Partial<CreateOutfitBody>;
 
 export interface PublicOutfitsQuery {
-  sort?: "hot" | "trending" | "new";
+  sort?: "hot" | "trending" | "new" | "oldest";
   tag?: string | null;
   q?: string;
   page?: number;

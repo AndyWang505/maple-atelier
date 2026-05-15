@@ -8,7 +8,7 @@ import type { PublicOutfitsQuery } from "./types";
 export const KEYS = {
   publicOutfits: (params: PublicOutfitsQuery): string => {
     const sp = new URLSearchParams();
-    if (params.sort && params.sort !== "hot") sp.set("sort", params.sort);
+    if (params.sort && params.sort !== "new") sp.set("sort", params.sort);
     if (params.tag) sp.set("tag", params.tag);
     if (params.q) sp.set("q", params.q);
     if (params.page && params.page > 1) sp.set("page", String(params.page));

@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import Button from "@mui/material/Button";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Chip from "@mui/material/Chip";
@@ -17,7 +18,7 @@ import { useApiPublicOutfits } from "@/lib/api/hooks/use-api-outfits";
 import { useApiTopTags } from "@/lib/api/hooks/use-api-tags";
 import type { PublicOutfitsResponse, TagCount } from "@/lib/api/types";
 
-type Sort = "hot" | "trending" | "new";
+type Sort = "hot" | "trending" | "new" | "oldest";
 
 function emptyMessage(q: string, tag: string | null): string {
   if (q) return `沒有符合「${q}」的公開搭配`;
@@ -25,43 +26,55 @@ function emptyMessage(q: string, tag: string | null): string {
   return "還沒有公開搭配";
 }
 
-/**
- * tier 化的 MUI Chip 樣式。
- * - 未選中:tier 0 maple-red 大 / tier 1 maple-leaf 中 / tier 2 預設 outlined 小
- * - 選中:楓紅 2px 邊框 + 楓紅文字 + 玫瑰淺底 + X icon(尺寸 / 字重保留 tier 形狀)
- */
-function tierChipSx(tier: 0 | 1 | 2, isSelected: boolean) {
+const TAG_PALETTE: ReadonlyArray<{ bg: string; hover: string; fg: string }> = [
+  { bg: "#c8423d", hover: "#a8362f", fg: "#fef2f2" }, // 楓紅
+  { bg: "#e87a4f", hover: "#d6663a", fg: "#fff7ed" }, // 楓葉橘
+  { bg: "#d97706", hover: "#b8650a", fg: "#fffbeb" }, // 琥珀
+  { bg: "#65a30d", hover: "#558a0b", fg: "#f7fee7" }, // 苔綠
+  { bg: "#0d9488", hover: "#0b7d72", fg: "#f0fdfa" }, // 鴨蛋青
+  { bg: "#0369a1", hover: "#075985", fg: "#f0f9ff" }, // 鈷藍
+  { bg: "#7c3aed", hover: "#6d28d9", fg: "#f5f3ff" }, // 葡萄紫
+  { bg: "#db2777", hover: "#be185d", fg: "#fdf2f8" }, // 桃粉
+];
+
+function tierChipSx(
+  tier: 0 | 1 | 2,
+  isSelected: boolean,
+  paletteIdx: number
+) {
+  const palette = TAG_PALETTE[paletteIdx % TAG_PALETTE.length];
+
   if (isSelected) {
     return {
-      bgcolor: "#fef2f2",
-      color: "#c8423d",
+      bgcolor: palette.fg,
+      color: palette.bg,
       fontWeight: 700,
       ...(tier === 0 && { fontSize: "0.95rem", height: 36 }),
       borderWidth: 2,
-      borderColor: "#c8423d",
-      "&:hover": { bgcolor: "#fee2e2", borderColor: "#a8362f" },
+      borderColor: palette.bg,
+      "&:hover": { bgcolor: palette.fg, borderColor: palette.hover },
       "& .MuiChip-deleteIcon": {
-        color: "#c8423d",
-        "&:hover": { color: "#a8362f" },
+        color: palette.bg,
+        "&:hover": { color: palette.hover },
       },
     };
   }
   if (tier === 0) {
     return {
-      bgcolor: "#c8423d",
+      bgcolor: palette.bg,
       color: "white",
       fontWeight: 700,
       fontSize: "0.95rem",
       height: 36,
-      "&:hover": { bgcolor: "#a8362f" },
+      "&:hover": { bgcolor: palette.hover },
     };
   }
   if (tier === 1) {
     return {
-      bgcolor: "#e87a4f",
+      bgcolor: palette.bg,
       color: "white",
       fontWeight: 600,
-      "&:hover": { bgcolor: "#d6663a" },
+      "&:hover": { bgcolor: palette.hover },
     };
   }
   return undefined;
@@ -94,7 +107,7 @@ export default function ExploreClient({
   // URL 是 source of truth — 重整 / 分享連結 / back button 都會還原到正確狀態
   const sortParam = searchParams.get("sort");
   const sort: Sort =
-    sortParam === "trending" ? "trending" : sortParam === "new" ? "new" : "hot";
+    sortParam === "hot" ? "hot" : sortParam === "trending" ? "trending" : sortParam === "oldest" ? "oldest" : "new";
   const tag = searchParams.get("tag");
   const debouncedQ = searchParams.get("q") ?? "";
   const page = Math.max(1, Number(searchParams.get("page") ?? "1"));
@@ -119,6 +132,21 @@ export default function ExploreClient({
     fallbackOutfits,
   );
   const { data: topTags } = useApiTopTags(20, fallbackTopTags);
+
+  const [tagsExpanded, setTagsExpanded] = useState(false);
+  const [tagsOverflow, setTagsOverflow] = useState(false);
+  const tagsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = tagsRef.current;
+    if (!el) return;
+    const check = () => setTagsOverflow(el.scrollHeight > el.clientHeight + 2);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [topTags]);
+
   const rows = data?.rows;
   const totalPages = data
     ? Math.max(1, Math.ceil(data.total / EXPLORE_PAGE_SIZE))
@@ -130,7 +158,7 @@ export default function ExploreClient({
     (updates: ParamUpdates) => {
       const params = new URLSearchParams(searchParams.toString());
       if (updates.sort !== undefined) {
-        if (updates.sort === "hot") params.delete("sort");
+        if (updates.sort === "new") params.delete("sort");
         else params.set("sort", updates.sort);
       }
       if (updates.tag !== undefined) {
@@ -174,55 +202,54 @@ export default function ExploreClient({
   return (
     <div className="space-y-8">
       <div>
-        <form
-          className="mb-5"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitSearch();
-          }}
-        >
-          <TextField
-            size="small"
-            fullWidth
-            placeholder="搜尋標題或作者"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <IconButton
-                      type="submit"
-                      size="small"
-                      edge="start"
-                      aria-label="搜尋"
-                      disabled={q === debouncedQ}
-                    >
-                      <SearchIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                endAdornment: q ? (
-                  <InputAdornment position="end">
-                    <IconButton
-                      size="small"
-                      edge="end"
-                      aria-label="清除搜尋"
-                      onClick={() => {
-                        setQ("");
-                        if (debouncedQ) setParams({ q: "" });
-                      }}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </InputAdornment>
-                ) : null,
-              },
+        <div className="flex items-center gap-3 mb-5">
+          <form
+            className="flex-1 min-w-0"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submitSearch();
             }}
-          />
-        </form>
-
-        <div className="mb-5">
+          >
+            <TextField
+              size="small"
+              fullWidth
+              placeholder="搜尋標題或作者"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <IconButton
+                        type="submit"
+                        size="small"
+                        edge="start"
+                        aria-label="搜尋"
+                        disabled={q === debouncedQ}
+                      >
+                        <SearchIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  endAdornment: q ? (
+                    <InputAdornment position="end">
+                      <IconButton
+                        size="small"
+                        edge="end"
+                        aria-label="清除搜尋"
+                        onClick={() => {
+                          setQ("");
+                          if (debouncedQ) setParams({ q: "" });
+                        }}
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                },
+              }}
+            />
+          </form>
           <ToggleButtonGroup
             value={sort}
             exclusive
@@ -230,35 +257,52 @@ export default function ExploreClient({
             onChange={(_, v: Sort | null) => v && v !== sort && setParams({ sort: v })}
             aria-label="排序"
           >
+            <ToggleButton value="new">最新</ToggleButton>
+            <ToggleButton value="oldest">最舊</ToggleButton>
             <ToggleButton value="hot">熱門</ToggleButton>
             <ToggleButton value="trending">趨勢</ToggleButton>
-            <ToggleButton value="new">最新</ToggleButton>
           </ToggleButtonGroup>
         </div>
 
         {topTags && topTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            {topTags.map((t, i) => {
-              const isSelected = tag === t.tag;
-              const tier = i < 3 ? 0 : i < 8 ? 1 : 2;
-              return (
-                <Chip
-                  key={t.tag}
-                  label={`#${t.tag}`}
-                  title={`${t.count} 套搭配使用`}
-                  size={tier === 2 ? "small" : "medium"}
-                  clickable
-                  onClick={() =>
-                    setParams({ tag: isSelected ? null : t.tag })
-                  }
-                  onDelete={
-                    isSelected ? () => setParams({ tag: null }) : undefined
-                  }
-                  variant={isSelected ? "outlined" : tier === 2 ? "outlined" : "filled"}
-                  sx={tierChipSx(tier, isSelected)}
-                />
-              );
-            })}
+          <div>
+            <div
+              ref={tagsRef}
+              className="flex flex-wrap items-center gap-2 overflow-hidden transition-[max-height] duration-300"
+              style={{ maxHeight: tagsExpanded ? "none" : "84px" }}
+            >
+              {topTags.map((t, i) => {
+                const isSelected = tag === t.tag;
+                const tier = i < 3 ? 0 : i < 8 ? 1 : 2;
+                return (
+                  <Chip
+                    key={t.tag}
+                    label={`#${t.tag}`}
+                    title={`${t.count} 套搭配使用`}
+                    size={tier === 2 ? "small" : "medium"}
+                    clickable
+                    onClick={() =>
+                      setParams({ tag: isSelected ? null : t.tag })
+                    }
+                    onDelete={
+                      isSelected ? () => setParams({ tag: null }) : undefined
+                    }
+                    variant={!isSelected && tier !== 2 ? "filled" : "outlined"}
+                    sx={tierChipSx(tier, isSelected, i)}
+                  />
+                );
+              })}
+            </div>
+            {(tagsOverflow || tagsExpanded) && (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setTagsExpanded((v) => !v)}
+                sx={{ mt: 0.5, px: 0.5, minWidth: 0, color: "text.secondary", fontSize: "0.75rem" }}
+              >
+                {tagsExpanded ? "收起" : "查看更多"}
+              </Button>
+            )}
           </div>
         )}
       </div>

@@ -2,14 +2,14 @@ import { and, asc, desc, eq, like, or, sql } from "drizzle-orm";
 import type { Db } from "@/db/client";
 import { outfits, users, votes } from "@/db/schema";
 import type { PublicOutfitsResponse } from "@/lib/api/types";
-import { authorNameSql, toWireRow } from "./utils";
+import { authorNameSql, publicOutfitBaseSelect, toWireRow } from "./utils";
 
 export const PUBLIC_DEFAULT_LIMIT = 24;
 export const PUBLIC_MAX_LIMIT = 60;
 export const PUBLIC_MAX_Q_LEN = 50;
 
 export interface PublicOutfitsParams {
-  sort: "hot" | "trending" | "new";
+  sort: "hot" | "trending" | "new" | "oldest";
   tag: string | null;
   q: string;
   page: number;
@@ -22,7 +22,7 @@ export function parsePublicOutfitsParams(
 ): PublicOutfitsParams {
   const sortParam = sp.get("sort");
   const sort: PublicOutfitsParams["sort"] =
-    sortParam === "trending" ? "trending" : sortParam === "new" ? "new" : "hot";
+    sortParam === "hot" ? "hot" : sortParam === "trending" ? "trending" : sortParam === "oldest" ? "oldest" : "new";
   const q = (sp.get("q") ?? "")
     .trim()
     .slice(0, PUBLIC_MAX_Q_LEN)
@@ -66,28 +66,14 @@ export async function queryPublicOutfits(
             ),
             desc(outfits.createdAt),
           ]
-        : [desc(outfits.createdAt), asc(outfits.id)];
-
-  const baseSelect = {
-    id: outfits.id,
-    userId: outfits.userId,
-    title: outfits.title,
-    description: outfits.description,
-    payload: outfits.payload,
-    tags: outfits.tags,
-    upvotes: outfits.upvotes,
-    views: outfits.views,
-    isPublic: outfits.isPublic,
-    createdAt: outfits.createdAt,
-    updatedAt: outfits.updatedAt,
-    authorName: authorNameSql,
-    authorImage: users.image,
-  };
+        : sort === "oldest"
+          ? [asc(outfits.createdAt), asc(outfits.id)]
+          : [desc(outfits.createdAt), asc(outfits.id)];
 
   const rawRows = currentUserId
     ? (
         await db
-          .select({ ...baseSelect, likedKey: votes.userId })
+          .select({ ...publicOutfitBaseSelect, likedKey: votes.userId })
           .from(outfits)
           .leftJoin(users, eq(users.id, outfits.userId))
           .leftJoin(
@@ -107,7 +93,7 @@ export async function queryPublicOutfits(
       }))
     : (
         await db
-          .select(baseSelect)
+          .select(publicOutfitBaseSelect)
           .from(outfits)
           .leftJoin(users, eq(users.id, outfits.userId))
           .where(where)
