@@ -13,7 +13,6 @@ import {
 import { toWireRow } from "@/lib/queries/utils";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 interface CreateBody {
   title?: string;

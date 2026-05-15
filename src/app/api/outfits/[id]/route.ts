@@ -12,7 +12,6 @@ import {
 } from "@/lib/validators/outfit";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 interface UpdateBody {
   title?: string;

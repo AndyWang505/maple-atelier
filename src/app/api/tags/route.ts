@@ -2,7 +2,6 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getDb } from "@/db/client";
 import { queryTopTags } from "@/lib/queries/top-tags";
 
-export const runtime = "edge";
 
 const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;

@@ -7,7 +7,6 @@ import { DISPLAY_NAME_MAX_LEN } from "@/lib/limits";
 import { validateUserText } from "@/lib/validators/text";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 interface UpdateBody {
   displayName: string | null;

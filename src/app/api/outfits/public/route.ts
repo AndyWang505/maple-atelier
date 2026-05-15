@@ -12,7 +12,6 @@ import {
   rateLimitResponse,
 } from "@/lib/rate-limit";
 
-export const runtime = "edge";
 
 // q triggers LIKE full-table scan → IP rate-limited.
 export async function GET(req: NextRequest) {
