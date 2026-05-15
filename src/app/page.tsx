@@ -106,11 +106,12 @@ export default async function Home() {
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.1]"
+          className="pointer-events-none absolute inset-0 opacity-[0.12]"
           style={{
             backgroundImage:
-              "radial-gradient(circle, white 1.25px, transparent 1.25px)",
-            backgroundSize: "22px 22px",
+              "radial-gradient(circle, white 1.5px, transparent 1.5px), linear-gradient(rgba(255,255,255,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+            backgroundPosition: "0 0, 0 14px, 14px 0",
           }}
         />
         <div className="relative">
