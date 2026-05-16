@@ -1,9 +1,11 @@
 export const ZOOM_LEVELS = [1, 1.5, 2] as const;
 
+export const SIMULATOR_BG_IMAGE = "/simulator-bg.webp" as const;
+
 export const BG_OPTIONS = [
-  { id: "none", label: "無" },
-  { id: "light", label: "淺" },
-  { id: "dark", label: "深" },
+  { id: "none",  label: "透明", image: null },
+  { id: "light", label: "白色", image: SIMULATOR_BG_IMAGE },
+  { id: "dark",  label: "深色", image: null },
 ] as const;
 
 export type BgId = (typeof BG_OPTIONS)[number]["id"];

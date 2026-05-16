@@ -51,6 +51,12 @@ const CATEGORY_ICONS: Record<string, React.ReactElement> = {
   mount: <TwoWheelerIcon fontSize="small" />,
 };
 
+const CATEGORY_COLORS: Record<SlotCategory, { default: string; selected: string }> = {
+  appearance: { default: "#dcfce7", selected: "#bbf7d0" },
+  equipment:  { default: "#dbeafe", selected: "#bfdbfe" },
+  mount:      { default: "#fee2e2", selected: "#fecaca" },
+};
+
 type CashFilter = "all" | "regular" | "cash";
 
 export default function ItemPicker() {
@@ -208,8 +214,6 @@ export default function ItemPicker() {
             "&.Mui-selected": { color: "#92400e", bgcolor: "#FFFBEB" },
             "&:hover:not(.Mui-selected)": { bgcolor: "#f9fafb" },
           },
-          "& .MuiTab-root .cat-icon": { bgcolor: "#f4f4f5" },
-          "& .MuiTab-root.Mui-selected .cat-icon": { bgcolor: "#FEF3C7" },
         }}
       >
         {SLOT_SECTIONS.map((section) => {
@@ -220,7 +224,6 @@ export default function ItemPicker() {
               label={
                 <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }}>
                   <Box
-                    className="cat-icon"
                     sx={{
                       display: "flex",
                       p: 0.75,
@@ -228,6 +231,9 @@ export default function ItemPicker() {
                       transition: "background-color 0.15s",
                       "& svg": { fontSize: 20 },
                       color: "inherit",
+                      bgcolor: category === section.id
+                        ? CATEGORY_COLORS[section.id].selected
+                        : CATEGORY_COLORS[section.id].default,
                     }}
                   >
                     {CATEGORY_ICONS[section.id]}

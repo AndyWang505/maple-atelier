@@ -9,9 +9,7 @@ import MenuItem from "@mui/material/MenuItem";
 import ListSubheader from "@mui/material/ListSubheader";
 import ButtonBase from "@mui/material/ButtonBase";
 import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import DownloadIcon from "@mui/icons-material/Download";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
@@ -27,8 +25,10 @@ import {
   ATTACK_STANCES,
   BASIC_STANCES,
   BG_OPTIONS,
+  type BgId,
   DARK_SELECT_SX,
   DARK_TOGGLE_SX,
+  SIMULATOR_BG_IMAGE,
   STAND_STANCES,
   ZOOM_LEVELS,
   getCardBgClass,
@@ -60,6 +60,16 @@ const PILL_GROUP_SX = (dark: boolean) => ({
     borderRadius: "999px !important",
   },
 });
+
+const BG_SELECT_SX = {
+  position: "relative",
+  zIndex: 1,
+  bgcolor: "rgba(255,255,255,0.88)",
+  borderRadius: 999,
+  boxShadow: "0 1px 6px rgba(0,0,0,0.18)",
+  "& .MuiOutlinedInput-notchedOutline": { borderColor: "transparent" },
+  "& .MuiSelect-select": { py: 0.75, px: 2, fontWeight: 600, fontSize: "0.875rem" },
+} as const;
 
 const CANVAS_W = 192;
 const CANVAS_H = 192;
@@ -205,9 +215,10 @@ export default function CharacterPreview() {
   const reset = useSimulator((s) => s.reset);
   const [zoomIdx, setZoomIdx] = useState(0);
   const scale = ZOOM_LEVELS[zoomIdx];
-  const [bgIdx, setBgIdx] = useState(0);
-  const bg = BG_OPTIONS[bgIdx];
+  const [bgId, setBgId] = useState<BgId>("none");
+  const bg = BG_OPTIONS.find((o) => o.id === bgId)!;
   const isDarkBg = bg.id === "dark";
+  const pillGroupSx = useMemo(() => PILL_GROUP_SX(isDarkBg), [isDarkBg]);
   const [flipped, setFlipped] = useState(false);
 
   const url = useMemo(() => {
@@ -269,7 +280,7 @@ export default function CharacterPreview() {
           size="small"
           onChange={(_, v: "forward" | "reverse" | null) => v && setFlipped(v === "reverse")}
           aria-label="方向"
-          sx={PILL_GROUP_SX(isDarkBg)}
+          sx={pillGroupSx}
         >
           <ToggleButton value="forward" sx={PILL_BTN_SX}>正向</ToggleButton>
           <ToggleButton value="reverse" sx={PILL_BTN_SX}>反向</ToggleButton>
@@ -325,7 +336,7 @@ export default function CharacterPreview() {
           size="small"
           onChange={(_, v: "static" | "animated" | null) => v && setAnimated(v === "animated")}
           aria-label="圖片 / 動畫"
-          sx={PILL_GROUP_SX(isDarkBg)}
+          sx={pillGroupSx}
         >
           <ToggleButton value="static" sx={PILL_BTN_SX}>圖片</ToggleButton>
           <ToggleButton value="animated" sx={PILL_BTN_SX}>動畫</ToggleButton>
@@ -334,29 +345,37 @@ export default function CharacterPreview() {
 
     </div>
 
-    <div className="rounded-2xl bg-white shadow-sm px-4 py-2.5 flex items-center gap-3">
-      <WallpaperIcon sx={{ fontSize: 16, color: "#71717a", flexShrink: 0 }} />
-      <Typography variant="caption" sx={{ fontWeight: 600, color: "#71717a", whiteSpace: "nowrap" }}>
-        背景
-      </Typography>
-      <ToggleButtonGroup
-        exclusive
-        size="small"
-        value={bg.id}
-        onChange={(_, val: string | null) => {
-          if (!val) return;
-          const idx = BG_OPTIONS.findIndex((o) => o.id === val);
-          if (idx !== -1) setBgIdx(idx);
+    <div
+      className="rounded-2xl shadow-sm overflow-hidden relative flex items-center justify-center"
+      style={{ minHeight: 80, border: "4px solid rgba(255,255,255,0.8)" }}
+    >
+      {/* scale 撐開避免模糊後的邊緣白邊 */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: `url('${SIMULATOR_BG_IMAGE}')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(2px)",
+          transform: "scale(1.04)",
         }}
-        aria-label="切換背景"
-        sx={{ ml: "auto" }}
+      />
+      <div
+        aria-hidden="true"
+        style={{ position: "absolute", inset: 0, backgroundColor: "rgba(255,255,255,0.55)" }}
+      />
+      <Select
+        value={bg.id}
+        onChange={(e: SelectChangeEvent<string>) => setBgId(e.target.value as BgId)}
+        size="small"
+        sx={BG_SELECT_SX}
       >
         {BG_OPTIONS.map(({ id, label }) => (
-          <ToggleButton key={id} value={id} sx={{ px: 2, py: 0.5, fontSize: "0.75rem" }}>
-            {label}
-          </ToggleButton>
+          <MenuItem key={id} value={id}>{label}</MenuItem>
         ))}
-      </ToggleButtonGroup>
+      </Select>
     </div>
 
     <div className="rounded-2xl bg-white shadow-sm flex items-center py-1 px-2">
