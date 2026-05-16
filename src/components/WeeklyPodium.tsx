@@ -147,6 +147,7 @@ export default function WeeklyPodium({ outfits, currentUserId }: WeeklyPodiumPro
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/maple-leaf.svg"
+            alt=""
             aria-hidden
             className="absolute pointer-events-none select-none"
             style={{

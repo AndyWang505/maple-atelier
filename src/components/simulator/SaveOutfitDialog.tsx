@@ -1,18 +1,32 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { forwardRef, useMemo, useState } from "react";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import IconButton from "@mui/material/IconButton";
+import Slide from "@mui/material/Slide";
 import Switch from "@mui/material/Switch";
 import Chip from "@mui/material/Chip";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
+import type { TransitionProps } from "@mui/material/transitions";
+import CloseIcon from "@mui/icons-material/Close";
 import { useApiTopTags } from "@/lib/api/hooks/use-api-tags";
 import { OUTFIT_LIMITS, TAG_VALID_REGEX } from "@/lib/limits";
 import { tagChipSx, tagChipClickableSx } from "@/lib/mui/theme";
+
+const SlideUp = forwardRef(function SlideUp(
+  props: TransitionProps & { children: React.ReactElement },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const MAX_TITLE_LEN = OUTFIT_LIMITS.titleLen;
 const MAX_DESCRIPTION_LEN = OUTFIT_LIMITS.descriptionLen;
@@ -76,9 +90,12 @@ interface SaveOutfitDialogProps {
   onClose: () => void;
   dialogTitle?: string;
   submitLabel?: string;
+  subtitle?: string;
   initial?: Partial<OutfitFormValues>;
   /** 由 caller 決定怎麼送(POST 建立 / PUT 編輯)。回 ok=false 會顯示錯誤、保持開啟 */
   onSubmit: (values: OutfitFormValues) => Promise<SubmitResult>;
+  /** 提供時在 DialogActions 顯示「儲存」鈕（更新現有搭配，不需要表單值） */
+  onSaveExisting?: () => Promise<void>;
 }
 
 /**
@@ -89,15 +106,20 @@ export default function SaveOutfitDialog({
   open,
   onClose,
   dialogTitle = "儲存搭配",
-  submitLabel = "儲存",
+  submitLabel = "新增",
+  subtitle,
   initial,
   onSubmit,
+  onSaveExisting,
 }: SaveOutfitDialogProps) {
   const [title, setTitle] = useState(initial?.title ?? "");
   const [description, setDescription] = useState(initial?.description ?? "");
   const [tagsInput, setTagsInput] = useState((initial?.tags ?? []).join(" "));
   const [isPublic, setIsPublic] = useState(initial?.isPublic ?? false);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [submitting, setSubmitting] = useState(false);
+  const [saving, setSaving] = useState(false);
   /** field 為 undefined 代表非欄位專屬(API 錯誤等),顯示在 dialog 底部 */
   const [error, setError] = useState<
     | { field?: "title" | "tags"; message: string }
@@ -183,9 +205,26 @@ export default function SaveOutfitDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{dialogTitle}</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="xs"
+      fullWidth
+      fullScreen={fullScreen}
+      slots={fullScreen ? { transition: SlideUp } : undefined}
+    >
+      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pr: 1 }}>
+        {dialogTitle}
+        {fullScreen && (
+          <IconButton size="small" onClick={handleClose} disabled={submitting} aria-label="關閉">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        )}
+      </DialogTitle>
       <DialogContent>
+        {subtitle && (
+          <p className="text-xs text-zinc-400 mb-1 -mt-1">{subtitle}</p>
+        )}
         <TextField
           autoFocus
           fullWidth
@@ -272,9 +311,25 @@ export default function SaveOutfitDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={submitting} color="inherit">
+        <Button onClick={handleClose} disabled={submitting || saving} color="inherit">
           取消
         </Button>
+        {onSaveExisting && (
+          <Button
+            variant="outlined"
+            color="primary"
+            disabled={submitting || saving}
+            onClick={() => {
+              setSaving(true);
+              void onSaveExisting()
+                .then(() => { onClose(); })
+                .catch(() => { setError({ message: "儲存失敗，請稍後再試" }); })
+                .finally(() => { setSaving(false); });
+            }}
+          >
+            {saving ? <CircularProgress size={14} color="inherit" /> : "儲存"}
+          </Button>
+        )}
         <Button
           onClick={handleSubmit}
           loading={submitting}

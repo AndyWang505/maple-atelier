@@ -1,6 +1,6 @@
 "use client";
 
-import {
+import React, {
   useEffect,
   useMemo,
   useRef,
@@ -11,13 +11,20 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import Divider from "@mui/material/Divider";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
+import PersonIcon from "@mui/icons-material/Person";
+import CheckroomIcon from "@mui/icons-material/Checkroom";
+import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import type { CatalogItem, Slot } from "@/types/maplestory";
 import { useSimulator } from "@/store/simulator";
 import { useIsMobile } from "@/lib/hooks/use-breakpoint";
@@ -37,6 +44,12 @@ import {
 } from "@/lib/color-variants";
 
 const ROW_HEIGHT = 115;
+
+const CATEGORY_ICONS: Record<string, React.ReactElement> = {
+  appearance: <PersonIcon fontSize="small" />,
+  equipment: <CheckroomIcon fontSize="small" />,
+  mount: <TwoWheelerIcon fontSize="small" />,
+};
 
 type CashFilter = "all" | "regular" | "cash";
 
@@ -58,19 +71,18 @@ export default function ItemPicker() {
   const equipped = useSimulator((s) => s.equipped);
   const expression = useSimulator((s) => s.expression);
   const setExpression = useSimulator((s) => s.setExpression);
+  const region = useSimulator((s) => s.region);
   const isExpression = active === "expression";
   const activeSlot: Slot | null = isExpression ? null : active;
-  const slotCache = useSimulator((s) =>
-    activeSlot ? s.catalog[activeSlot] : undefined,
-  );
+  const slotCache = useSimulator((s) => activeSlot ? s.catalog[activeSlot] : undefined);
   const loadSlot = useSimulator((s) => s.loadSlot);
   useEffect(() => {
     if (!activeSlot) return;
     void loadSlot(activeSlot);
-  }, [activeSlot, loadSlot]);
+  }, [activeSlot, loadSlot, region]);
 
-  const handleCategoryChange = (_: unknown, next: SlotCategory | null) => {
-    if (!next || next === category) return;
+  const handleCategoryChange = (_: unknown, next: SlotCategory) => {
+    if (next === category) return;
     setCategory(next);
     const section = SLOT_SECTIONS.find((s) => s.id === next);
     if (section) setActive(section.slots[0]);
@@ -170,140 +182,215 @@ export default function ItemPicker() {
   };
 
   return (
-    <div className="rounded-2xl bg-white/75 backdrop-blur-md border border-white/80 shadow-sm shadow-sky-200/40 overflow-hidden flex flex-col">
-      <div className="px-4 py-3">
-        <ToggleButtonGroup
-          value={category}
-          exclusive
-          size="small"
-          onChange={handleCategoryChange}
-          aria-label="主分類"
-        >
-          {SLOT_SECTIONS.map((section) => (
-            <ToggleButton key={section.id} value={section.id}>
-              {section.title}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-      </div>
+    <div className="rounded-2xl bg-white shadow-sm overflow-hidden flex flex-col">
+      {/* Layer 1: 主分類 */}
+      <Tabs
+        value={category}
+        onChange={handleCategoryChange}
+        sx={{
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          minHeight: "auto",
+          "& .MuiTabs-indicator": { backgroundColor: "#F59E0B", height: 3 },
+          "& .MuiTabs-flexContainer": { px: 2 },
+          "& .MuiTab-root": {
+            flex: 1,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+            minHeight: 56,
+            px: 1.5,
+            py: 0,
+            textTransform: "none",
+            color: "#71717a",
+            transition: "background-color 0.15s, color 0.15s",
+            "&.Mui-selected": { color: "#92400e", bgcolor: "#FFFBEB" },
+            "&:hover:not(.Mui-selected)": { bgcolor: "#f9fafb" },
+          },
+          "& .MuiTab-root .cat-icon": { bgcolor: "#f4f4f5" },
+          "& .MuiTab-root.Mui-selected .cat-icon": { bgcolor: "#FEF3C7" },
+        }}
+      >
+        {SLOT_SECTIONS.map((section) => {
+          return (
+            <Tab
+              key={section.id}
+              value={section.id}
+              label={
+                <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }}>
+                  <Box
+                    className="cat-icon"
+                    sx={{
+                      display: "flex",
+                      p: 0.75,
+                      borderRadius: 1,
+                      transition: "background-color 0.15s",
+                      "& svg": { fontSize: 20 },
+                      color: "inherit",
+                    }}
+                  >
+                    {CATEGORY_ICONS[section.id]}
+                  </Box>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: "inherit" }}>
+                    {section.title}
+                  </Typography>
+                </Box>
+              }
+            />
+          );
+        })}
+      </Tabs>
 
-      <div className="px-4">
-        <Tabs
-          value={active}
-          onChange={(_, v) => setActive(v as Slot | "expression")}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            "& .MuiTabs-indicator": { backgroundColor: "#F59E0B" },
-            "& .MuiTab-root.Mui-selected": { color: "#B45309" },
-          }}
-        >
-          {slotsInCategory.map((slot) => (
-            <Tab key={slot} label={SLOT_LABELS[slot]} value={slot} />
-          ))}
-          {category === "appearance" && (
-            <Tab key="expression" label="表情" value="expression" />
-          )}
-        </Tabs>
-      </div>
+      {/* Layer 2: slot tabs with counts */}
+      <Tabs
+        value={active}
+        onChange={(_, v) => setActive(v as Slot | "expression")}
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{
+          px: 1,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+          "& .MuiTabs-indicator": { backgroundColor: "#F59E0B" },
+          "& .MuiTab-root": { minHeight: 56, py: 0.5 },
+          "& .MuiTab-root.Mui-selected": { color: "#B45309" },
+        }}
+      >
+        {slotsInCategory.map((slot) => (
+          <Tab key={slot} value={slot} label={SLOT_LABELS[slot]} />
+        ))}
+        {category === "appearance" && (
+          <Tab key="expression" value="expression" label="表情" />
+        )}
+      </Tabs>
 
       <div className="px-4 py-3">
-        <TextField
-          size="small"
-          fullWidth
-          placeholder="搜尋名稱或 ID..."
-          value={query}
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-          onKeyDown={(e: ReactKeyboardEvent<HTMLInputElement>) => {
-            if (e.key === "Enter") submitSearch();
-          }}
-          slotProps={{
-            input: {
-              endAdornment: (
-                <InputAdornment position="end">
-                  {committedQuery && (
+        <div className="flex items-center gap-2">
+          <TextField
+            size="small"
+            sx={{ flex: 1 }}
+            placeholder="搜尋名稱或 ID..."
+            value={query}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+            onKeyDown={(e: ReactKeyboardEvent<HTMLInputElement>) => {
+              if (e.key === "Enter") submitSearch();
+            }}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    {committedQuery && (
+                      <IconButton
+                        size="small"
+                        onClick={clearSearch}
+                        aria-label="清除搜尋"
+                      >
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    )}
                     <IconButton
                       size="small"
-                      onClick={clearSearch}
-                      aria-label="清除搜尋"
+                      onClick={submitSearch}
+                      aria-label="搜尋"
                     >
-                      <CloseIcon fontSize="small" />
+                      <SearchIcon fontSize="small" />
                     </IconButton>
-                  )}
-                  <IconButton
-                    size="small"
-                    onClick={submitSearch}
-                    aria-label="搜尋"
-                  >
-                    <SearchIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
-        {category === "equipment" && (
-          <ToggleButtonGroup
-            value={cashFilter}
-            exclusive
-            size="small"
-            fullWidth
-            onChange={(_: unknown, v: CashFilter | null) => v && setCashFilter(v)}
-            aria-label="一般 / 現金 過濾"
-            sx={{ mt: 1.5 }}
-          >
-            <ToggleButton value="all">全部</ToggleButton>
-            <ToggleButton value="regular">一般</ToggleButton>
-            <ToggleButton value="cash">現金</ToggleButton>
-          </ToggleButtonGroup>
-        )}
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+          {category === "equipment" && (
+            <ToggleButtonGroup
+              value={cashFilter}
+              exclusive
+              size="small"
+              onChange={(_: unknown, v: CashFilter | null) => v && setCashFilter(v)}
+              aria-label="一般 / 現金 過濾"
+              sx={{
+                flexShrink: 0,
+                "& .MuiToggleButton-root": {
+                  px: 1.5,
+                  color: "#71717a",
+                  borderColor: "#e4e4e7",
+                  fontWeight: 500,
+                  "&.Mui-selected": {
+                    bgcolor: "#e4e4e7",
+                    color: "#18181b",
+                    borderColor: "#e4e4e7",
+                    fontWeight: 700,
+                    "&:hover": { bgcolor: "#d4d4d8" },
+                  },
+                  "&:hover:not(.Mui-selected)": { bgcolor: "#f9fafb" },
+                },
+              }}
+            >
+              <ToggleButton value="all">全部</ToggleButton>
+              <ToggleButton value="regular">一般</ToggleButton>
+              <ToggleButton value="cash">現金</ToggleButton>
+            </ToggleButtonGroup>
+          )}
+        </div>
         {isExpression ? (
-          <p className="mt-1.5 text-xs text-zinc-500">
+          <Typography variant="caption" sx={{ display: "block", mt: 1.5, color: "#71717a" }}>
             {q
-              ? `符合 ${visibleExpressions.length} / ${EXPRESSIONS.length} 款`
+              ? <><span style={{ color: "#D97706", fontWeight: 600 }}>{visibleExpressions.length}</span>{` / ${EXPRESSIONS.length} 款`}</>
               : `共 ${EXPRESSIONS.length} 款`}
-          </p>
+          </Typography>
         ) : (
           status === "success" && (
-            <p className="mt-1.5 text-xs text-zinc-500">
+            <Typography variant="caption" sx={{ display: "block", mt: 1.5, color: "#71717a" }}>
               {q
-                ? `符合 ${visible.length} / ${collapsed.length} ${unitLabel}`
+                ? <><span style={{ color: "#D97706", fontWeight: 600 }}>{visible.length}</span>{` / ${collapsed.length} ${unitLabel}`}</>
                 : `共 ${collapsed.length} ${unitLabel}`}
-            </p>
+            </Typography>
           )
         )}
       </div>
 
+      <Divider />
+
       <div
         ref={parentRef}
-        className="flex-1 overflow-y-auto px-4 pb-4 max-h-[560px]"
+        className="flex-1 overflow-y-auto px-4 pt-3 pb-4 max-h-[560px] bg-zinc-100"
       >
         {isExpression && visibleExpressions.length === 0 && (
-          <p className="text-sm text-zinc-500 text-center py-8">沒有符合的表情</p>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>沒有符合的表情</Typography>
         )}
         {isExpression && visibleExpressions.length > 0 && (
           <div className="grid grid-cols-5 gap-2">
             {visibleExpressions.map((e) => {
               const isSelected = expression === e.id;
               return (
-                <button
+                <Button
                   key={e.id}
-                  type="button"
                   onClick={() => setExpression(e.id)}
                   title={e.label}
-                  className={`flex flex-col items-center justify-center gap-0.5 p-3 rounded-lg border transition-colors min-h-[72px] ${
-                    isSelected
-                      ? "border-amber-400 bg-amber-50"
-                      : "border-zinc-200 bg-white hover:border-sky-400"
-                  }`}
+                  sx={{
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.5,
+                    p: 1.5,
+                    borderRadius: 2,
+                    border: "1px solid",
+                    minHeight: 72,
+                    borderColor: isSelected ? "#FBBF24" : "#e4e4e7",
+                    bgcolor: isSelected ? "#FFFBEB" : "white",
+                    color: "text.primary",
+                    textTransform: "none",
+                    transition: "border-color 0.15s, background-color 0.15s",
+                    "&:hover": { borderColor: isSelected ? "#FBBF24" : "#7dd3fc", bgcolor: isSelected ? "#FFFBEB" : "white" },
+                  }}
                 >
-                  <span className="text-sm leading-tight text-zinc-800 truncate max-w-full">
+                  <Typography variant="body2" noWrap sx={{ lineHeight: 1.3, color: "text.primary", maxWidth: "100%" }}>
                     {e.label}
-                  </span>
-                  <span className="text-[11px] leading-tight text-zinc-500 truncate max-w-full">
+                  </Typography>
+                  <Typography variant="caption" noWrap sx={{ lineHeight: 1.3, color: "text.secondary", maxWidth: "100%" }}>
                     {e.id}
-                  </span>
-                </button>
+                  </Typography>
+                </Button>
               );
             })}
           </div>
@@ -311,25 +398,27 @@ export default function ItemPicker() {
         {!isExpression && (
           <>
         {(status === "idle" || status === "loading") && (
-          <p className="text-sm text-zinc-500 text-center py-8">載入中...</p>
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>載入中...</Typography>
         )}
         {status === "error" && (
           <div className="text-center py-8 space-y-2">
-            <p className="text-sm text-red-600">
+            <Typography variant="body2" color="error">
               載入失敗{slotCache?.error ? `:${slotCache.error}` : ""}
-            </p>
-            <button
+            </Typography>
+            <Button
+              variant="text"
+              size="small"
               onClick={() => activeSlot && void loadSlot(activeSlot)}
-              className="text-sm text-maple-red underline hover:opacity-80"
+              sx={{ color: "#D97706", textDecoration: "underline" }}
             >
               重試
-            </button>
+            </Button>
           </div>
         )}
         {status === "success" && visible.length === 0 && (
-          <p className="text-sm text-zinc-500 text-center py-8">
+          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", py: 4 }}>
             {q ? "沒有符合的項目" : "這個部位沒有道具"}
-          </p>
+          </Typography>
         )}
         {status === "success" && visible.length > 0 && (
           <div

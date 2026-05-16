@@ -26,7 +26,6 @@ export const OPTIONAL_SLOTS: ReadonlyArray<Slot> = [
   "glove",
   "cape",
   "weapon",
-  "offhand",
 ];
 
 /** 抽一套隨機 slot 集合:必裝 + 選裝 50/50 + (上衣+褲子) vs 套服 二擇一 */

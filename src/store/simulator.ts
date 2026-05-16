@@ -26,6 +26,8 @@ type Catalog = Partial<Record<Slot, SlotCache>>;
 const DEFAULT_STANCE = "stand1";
 const DEFAULT_ANIMATED = false;
 const DEFAULT_EXPRESSION = "default";
+const DEFAULT_REGION = "TWMS";
+const DEFAULT_VERSION = "256";
 
 interface SimulatorState {
   equipped: Equipped;
@@ -35,6 +37,10 @@ interface SimulatorState {
   /** 是否取動畫 GIF(false 取靜態 PNG) */
   animated: boolean;
   expression: string;
+  /** 物品目錄的地區(TWMS / KMS / GMS ...) */
+  region: string;
+  /** 對應地區的遊戲版本號(影響 catalog 撈取) */
+  version: string;
   /**
    * 每次清空 / 隨機 / 載入別套都 +1。loadSlot 拿到 fetch 結果若要寫回隨機選的 item,
    * 會比對自己抓的 generation;若期間有人重新整理過,寫回會被丟棄,避免 in-flight
@@ -50,6 +56,8 @@ interface SimulatorState {
   setStanceId: (id: string) => void;
   setAnimated: (animated: boolean) => void;
   setExpression: (expression: string) => void;
+  /** 切換 catalog 地區;清空目前 catalog 快取讓各 slot 下次打開時重新撈 */
+  setRegion: (region: string, version: string) => void;
   loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
   loadOutfit: (payload: OutfitPayload) => void;
   loadDefault: () => void;
@@ -65,6 +73,8 @@ export const useSimulator = create<SimulatorState>()(
       stanceId: DEFAULT_STANCE,
       animated: DEFAULT_ANIMATED,
       expression: DEFAULT_EXPRESSION,
+      region: DEFAULT_REGION,
+      version: DEFAULT_VERSION,
       generation: 0,
 
       equip: (item) =>
@@ -130,6 +140,11 @@ export const useSimulator = create<SimulatorState>()(
         if (get().expression === expression) return;
         set({ expression });
       },
+      setRegion: (region, version) => {
+        const s = get();
+        if (s.region === region && s.version === version) return;
+        set({ region, version, catalog: {} });
+      },
 
       loadOutfit: (payload) => {
         const state = get();
@@ -186,7 +201,8 @@ export const useSimulator = create<SimulatorState>()(
         }));
 
         try {
-          const items = await fetchItemsBySlot(slot);
+          const { region, version } = get();
+          const items = await fetchItemsBySlot(slot, { region, version });
           set((state) => {
             let nextEquipped = state.equipped;
             const current = nextEquipped[slot];
@@ -231,6 +247,8 @@ export const useSimulator = create<SimulatorState>()(
         stanceId: state.stanceId,
         animated: state.animated,
         expression: state.expression,
+        region: state.region,
+        version: state.version,
       }),
     },
   ),

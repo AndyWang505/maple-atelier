@@ -1,10 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
-import RestartAltIcon from "@mui/icons-material/RestartAlt";
-import ShuffleIcon from "@mui/icons-material/Shuffle";
-import Button from "@mui/material/Button";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { isStub as isStubItem, useSimulator } from "@/store/simulator";
 import { getSlotIconUrl } from "@/lib/maplestory";
 import { ItemIcon } from "@/components/ui/ItemIcon";
@@ -16,39 +16,32 @@ import {
   isSameStyle,
   stripColorName,
 } from "@/lib/color-variants";
+import type { Slot } from "@/types/maplestory";
 
-export default function EquipmentSlots() {
+export default function EquipmentSlots({ hideTitle, scrollable }: { hideTitle?: boolean; scrollable?: boolean } = {}) {
   const equipped = useSimulator((s) => s.equipped);
   const catalog = useSimulator((s) => s.catalog);
   const equip = useSimulator((s) => s.equip);
   const unequip = useSimulator((s) => s.unequip);
-  const reset = useSimulator((s) => s.reset);
-  const randomize = useSimulator((s) => s.randomize);
+  const [expandedSlots, setExpandedSlots] = useState<Set<Slot>>(new Set());
+
+  const toggleExpand = (slot: Slot) =>
+    setExpandedSlots((prev) => {
+      const next = new Set(prev);
+      if (next.has(slot)) next.delete(slot);
+      else next.add(slot);
+      return next;
+    });
 
   return (
-    <div className="rounded-2xl bg-white/75 backdrop-blur-md border border-white/80 shadow-sm shadow-sky-200/40 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="font-semibold text-sm">目前裝備</h3>
-        <div className="flex gap-2">
-          <Button
-            size="small"
-            startIcon={<ShuffleIcon />}
-            onClick={randomize}
-            color="primary"
-          >
-            隨機
-          </Button>
-          <Button
-            size="small"
-            startIcon={<RestartAltIcon />}
-            onClick={reset}
-            color="inherit"
-          >
-            重置
-          </Button>
+    <div className={`rounded-2xl bg-white shadow-sm${scrollable ? " flex flex-col max-h-[calc(100vh-320px)] overflow-hidden pl-4 pt-4 pb-4 pr-0" : " p-4"}`}>
+      {!hideTitle && (
+        <div className="mb-2 shrink-0">
+          <h3 className="font-semibold text-sm">目前裝備</h3>
         </div>
-      </div>
+      )}
 
+      <div className={scrollable ? "overflow-y-auto flex-1 min-h-0 pr-4" : ""}>
       {SLOT_SECTIONS.map(({ id, title, slots }) => {
         const equippedSlots = slots.filter((s) => equipped[s]);
         if (equippedSlots.length === 0) return null;
@@ -74,6 +67,8 @@ export default function EquipmentSlots() {
                   : isColorSlot(slot)
                   ? stripColorName(item.name)
                   : item.name;
+                const hasColors = colorVariants.length > 1;
+                const isExpanded = expandedSlots.has(slot);
                 return (
                   <li key={slot} className="py-1.5">
                     <div className="flex items-center gap-3">
@@ -112,6 +107,20 @@ export default function EquipmentSlots() {
                           )}
                         </p>
                       </div>
+                      {hasColors && (
+                        <IconButton
+                          size="small"
+                          onClick={() => toggleExpand(slot)}
+                          aria-label={isExpanded ? "收起顏色" : "展開顏色"}
+                          sx={{
+                            transition: "transform 0.2s",
+                            transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                            color: isExpanded ? "#D97706" : undefined,
+                          }}
+                        >
+                          <ExpandMoreIcon fontSize="small" />
+                        </IconButton>
+                      )}
                       <IconButton
                         size="small"
                         onClick={() => unequip(slot)}
@@ -120,30 +129,32 @@ export default function EquipmentSlots() {
                         <CloseIcon fontSize="small" />
                       </IconButton>
                     </div>
-                    {colorVariants.length > 1 && (
-                      <div className="flex gap-2 mt-1.5 pl-11">
-                        {colorVariants.map((v) => {
-                          const colorIdx = getColorIndex(slot, v.id);
-                          const swatch = COLOR_SWATCHES[colorIdx];
-                          const isActive = v.id === item.id;
-                          return (
-                            <button
-                              key={v.id}
-                              onClick={() => equip(v)}
-                              className={`w-5 h-5 rounded-full border-2 transition ${
-                                isActive
-                                  ? "border-maple-red scale-110"
-                                  : "border-zinc-300 hover:border-zinc-500"
-                              }`}
-                              style={{
-                                background: swatch?.hex ?? "#a3a3a3",
-                              }}
-                              title={`${swatch?.name ?? colorIdx}色 (${v.id})`}
-                              aria-label={`切換顏色 ${swatch?.name ?? colorIdx}`}
-                            />
-                          );
-                        })}
-                      </div>
+                    {hasColors && (
+                      <Collapse in={isExpanded} unmountOnExit>
+                        <div className="flex flex-wrap gap-2 mt-1.5 pl-11 pb-0.5">
+                          {colorVariants.map((v) => {
+                            const colorIdx = getColorIndex(slot, v.id);
+                            const swatch = COLOR_SWATCHES[colorIdx];
+                            const isActive = v.id === item.id;
+                            return (
+                              <button
+                                key={v.id}
+                                onClick={() => equip(v)}
+                                className={`w-5 h-5 rounded-full border-2 transition ${
+                                  isActive
+                                    ? "border-amber-500 scale-110"
+                                    : "border-zinc-300 hover:border-zinc-500"
+                                }`}
+                                style={{
+                                  background: swatch?.hex ?? "#a3a3a3",
+                                }}
+                                title={`${swatch?.name ?? colorIdx}色 (${v.id})`}
+                                aria-label={`切換顏色 ${swatch?.name ?? colorIdx}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      </Collapse>
                     )}
                   </li>
                 );
@@ -152,6 +163,7 @@ export default function EquipmentSlots() {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

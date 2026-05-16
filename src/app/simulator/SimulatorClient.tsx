@@ -1,14 +1,31 @@
 "use client";
 
-import { useEffect, useRef, Suspense } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import IconButton from "@mui/material/IconButton";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Typography from "@mui/material/Typography";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import PublicIcon from "@mui/icons-material/Public";
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import CharacterPreview from "@/components/simulator/CharacterPreview";
-import ItemPicker from "@/components/simulator/ItemPicker";
 import EquipmentSlots from "@/components/simulator/EquipmentSlots";
-import SaveOutfitFab from "@/components/simulator/SaveOutfitFab";
+import ItemPicker from "@/components/simulator/ItemPicker";
+import SaveOutfitBar from "@/components/simulator/SaveOutfitBar";
+import { useToast } from "@/components/ToastProvider";
+import { useApiCreateOutfit, useApiOutfit, useApiUpdateOutfit } from "@/lib/api/hooks/use-api-outfits";
+import { ApiError, getApiErrorMessage } from "@/lib/api/fetcher";
+import SaveOutfitDialog, { type OutfitFormValues, type SubmitResult } from "@/components/simulator/SaveOutfitDialog";
+import { fetchRegions, isSyntheticSlot } from "@/lib/maplestory";
+import { toOutfitPayload } from "@/lib/outfit-payload";
+import { SLOT_LABELS } from "@/lib/slot-taxonomy";
 import { useSimulator } from "@/store/simulator";
-import { useApiOutfit } from "@/lib/api/hooks/use-api-outfits";
+import type { Slot, RegionInfo } from "@/types/maplestory";
 
 type SparkleSpec = {
   pos: string;
@@ -105,6 +122,237 @@ function Dot({ pos, cls }: DotSpec) {
   );
 }
 
+const REGION_OPTIONS = [
+  { code: "TWMS", label: "TWMS" },
+  { code: "KMS",  label: "KMS"  },
+  { code: "GMS",  label: "GMS"  },
+] as const;
+
+type RegionCode = (typeof REGION_OPTIONS)[number]["code"];
+
+function SimulatorSettingsPanel() {
+  const region = useSimulator((s) => s.region);
+  const setRegion = useSimulator((s) => s.setRegion);
+  const [versionMap, setVersionMap] = useState<Partial<Record<RegionCode, string>>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRegions()
+      .then((list: RegionInfo[]) => {
+        const map: Partial<Record<RegionCode, string>> = {};
+        for (const { code } of REGION_OPTIONS) {
+          // Only numeric versions are stable game patches; skip beta/test tags like "40B"
+          const entries = list.filter(
+            (x) => x.region === code && /^\d+$/.test(x.version),
+          );
+          if (entries.length === 0) continue;
+          const latest = entries.reduce((a, b) =>
+            Number(b.version) > Number(a.version) ? b : a,
+          );
+          map[code] = latest.version;
+        }
+        setVersionMap(map);
+        // Sync the current region to the latest version to avoid stale localStorage 500s
+        const cur = useSimulator.getState().region;
+        const latestVer = map[cur as RegionCode];
+        if (latestVer) setRegion(cur, latestVer);
+      })
+      .catch(() => { /* silently degrade */ })
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const currentVersion = versionMap[region as RegionCode];
+
+  return (
+    <div className="relative z-20 mx-4 mt-3 mb-2 rounded-2xl bg-white shadow-sm px-4 py-2.5">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2 min-w-0">
+          <SettingsOutlinedIcon sx={{ fontSize: 15, color: "#71717a", flexShrink: 0 }} />
+          <Typography variant="caption" noWrap sx={{ color: "#71717a", fontSize: "11px" }}>
+            切換地區以載入對應版本的裝備目錄，已穿戴的裝備會保留，但部分裝備可能因資料尚未提供而無法顯示。
+          </Typography>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <PublicIcon sx={{ fontSize: 15, color: "#71717a" }} />
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={region}
+            onChange={(_, val: string | null) => {
+              if (!val) return;
+              const ver = versionMap[val as RegionCode];
+              if (ver) setRegion(val, ver);
+            }}
+            sx={{
+              gap: 0.5,
+              "& .MuiToggleButtonGroup-grouped": { border: "none !important", borderRadius: "999px !important" },
+            }}
+          >
+            {REGION_OPTIONS.map(({ code, label }) => {
+              const ver = versionMap[code];
+              const disabled = !loading && !ver;
+              return (
+                <ToggleButton
+                  key={code}
+                  value={code}
+                  disabled={disabled}
+                  sx={{
+                    px: 1.5,
+                    py: 0.25,
+                    fontSize: "0.7rem",
+                    fontWeight: 600,
+                    color: "#52525b",
+                    bgcolor: "#f4f4f5",
+                    "&:hover": { bgcolor: "#e4e4e7" },
+                    "&.Mui-selected": {
+                      bgcolor: "#D97706",
+                      color: "#fff",
+                      boxShadow: "0 2px 8px rgba(217,119,6,0.35)",
+                      "&:hover": { bgcolor: "#B45309" },
+                    },
+                    "&.Mui-disabled": { color: "#d4d4d8", bgcolor: "#fafafa" },
+                  }}
+                >
+                  {label}
+                </ToggleButton>
+              );
+            })}
+          </ToggleButtonGroup>
+          {!loading && currentVersion && (
+            <Typography variant="caption" sx={{ color: "#71717a" }}>
+              版本 {currentVersion}
+            </Typography>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StickyEquipmentDrawer({ editId }: { editId: number | null }) {
+  const [open, setOpen] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const { status: sessionStatus } = useSession();
+  const equipped = useSimulator((s) => s.equipped);
+  const stanceId = useSimulator((s) => s.stanceId);
+  const animated = useSimulator((s) => s.animated);
+  const expression = useSimulator((s) => s.expression);
+  const { trigger: updateOutfit } = useApiUpdateOutfit();
+  const { trigger: createOutfit } = useApiCreateOutfit();
+  const toast = useToast();
+  const [saving, setSaving] = useState(false);
+
+  const equippedEntries = useMemo(
+    () => Object.entries(equipped)
+      .filter(([, item]) => item != null && !isSyntheticSlot(item.slot))
+      .map(([slot, item]) => ({ slot: slot as Slot, item: item! })),
+    [equipped],
+  );
+
+  const count = equippedEntries.length;
+  const slotNames = useMemo(
+    () => equippedEntries.map(({ slot }) => SLOT_LABELS[slot]).join("、"),
+    [equippedEntries],
+  );
+
+  const requireAuth = () => {
+    if (sessionStatus !== "authenticated") {
+      toast.info("需要登入後才能進行儲存搭配");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSave = async () => {
+    if (editId === null || !requireAuth()) return;
+    setSaving(true);
+    try {
+      await updateOutfit({ id: editId, body: { payload: toOutfitPayload(equipped, stanceId, animated, expression) } });
+      toast.success("已儲存");
+    } catch {
+      toast.error("儲存失敗");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCreate = async (values: OutfitFormValues): Promise<SubmitResult> => {
+    try {
+      await createOutfit({ ...values, payload: toOutfitPayload(equipped, stanceId, animated, expression) });
+      toast.success("已加入衣櫃");
+      return { ok: true };
+    } catch (e) {
+      toast.error("儲存失敗");
+      if (e instanceof ApiError) {
+        if (e.status === 429) return { ok: false, error: getApiErrorMessage(e) ?? "已達儲存上限" };
+        if (e.status === 401) return { ok: false, error: "請先登入再儲存" };
+        return { ok: false, error: `儲存失敗(${e.status})` };
+      }
+      return { ok: false, error: "儲存失敗" };
+    }
+  };
+
+  return (
+    <>
+      {open && (
+        <div
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[1px]"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <div
+          className="bg-zinc-50 overflow-y-auto transition-[max-height] duration-300 ease-in-out rounded-t-2xl shadow-[0_-2px_12px_rgba(0,0,0,0.06)]"
+          style={{ maxHeight: open ? "65vh" : 0 }}
+        >
+          <div className="p-4">
+            <EquipmentSlots hideTitle />
+          </div>
+        </div>
+        <div className="bg-white border-t border-zinc-200 px-4 py-2.5 flex items-center gap-2 shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-semibold text-zinc-800">目前裝備 {count} 件</p>
+            <p className="text-xs text-zinc-400 truncate">{slotNames}</p>
+          </div>
+          <IconButton
+            size="small"
+            onClick={() => setOpen((v) => !v)}
+            sx={{ color: "#71717a", border: "1px solid #e4e4e7", borderRadius: "999px", "&:hover": { borderColor: "#a1a1aa", bgcolor: "transparent" } }}
+          >
+            <ExpandMoreIcon sx={{ fontSize: 18, transition: "transform 0.25s", transform: open ? "rotate(0deg)" : "rotate(180deg)" }} />
+          </IconButton>
+          {editId !== null && (
+            <Button
+              variant="contained" size="small" color="primary"
+              disabled={saving}
+              onClick={() => void handleSave()}
+              sx={{ borderRadius: 1, px: 2, flexShrink: 0 }}
+            >
+              {saving ? <CircularProgress size={14} color="inherit" /> : "儲存"}
+            </Button>
+          )}
+          <Button
+            variant="outlined" size="small" color="primary"
+            onClick={() => { if (requireAuth()) setFormOpen(true); }}
+            sx={{ borderRadius: 1, px: 2, flexShrink: 0 }}
+          >
+            新增
+          </Button>
+        </div>
+      </div>
+
+      <SaveOutfitDialog
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSubmit={handleCreate}
+        subtitle={`目前裝備 ${count} 件`}
+      />
+    </>
+  );
+}
+
 function SimulatorContent() {
   const searchParams = useSearchParams();
 
@@ -155,14 +403,22 @@ function SimulatorContent() {
 
   return (
     <>
-      <div className="relative container mx-auto max-w-7xl px-4 pt-4 pb-12 sm:pb-16 grid gap-4 md:grid-cols-[1fr_1.5fr] items-start">
-        <div className="flex flex-col gap-4">
-          <CharacterPreview />
-          <EquipmentSlots />
+      <div className="relative container mx-auto max-w-[1600px]">
+        <SimulatorSettingsPanel />
+        <div className="px-4 pt-2 pb-28 xl:pb-16 grid gap-4 md:grid-cols-[360px_1fr] xl:grid-cols-[380px_1fr_280px] 2xl:grid-cols-[460px_1fr_360px] items-start">
+          <div className="self-start flex flex-col gap-3">
+            <CharacterPreview />
+          </div>
+          <ItemPicker />
+          <div className="hidden xl:flex flex-col gap-3 sticky top-[72px]">
+            <EquipmentSlots scrollable />
+            <SaveOutfitBar editId={ownedEditId} />
+          </div>
         </div>
-        <ItemPicker />
+        <div className="xl:hidden">
+          <StickyEquipmentDrawer editId={ownedEditId} />
+        </div>
       </div>
-      <SaveOutfitFab editId={ownedEditId} />
     </>
   );
 }
@@ -174,6 +430,19 @@ export default function SimulatorClient() {
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-r from-yellow-100/40 via-emerald-100/40 to-sky-200/40 blur-2xl"
+      />
+      {/* 裝飾雲朵 */}
+      <Image src="/simulator-cloude.png" alt="" aria-hidden width={256} height={120}
+        className="pointer-events-none absolute -top-4 -left-8 w-64 opacity-70"
+        style={{ height: "auto", animation: "pulse 6s ease-in-out infinite" }}
+      />
+      <Image src="/simulator-cloude.png" alt="" aria-hidden width={384} height={180}
+        className="pointer-events-none absolute top-16 right-0 w-96 opacity-50"
+        style={{ height: "auto", animation: "pulse 8s ease-in-out infinite" }}
+      />
+      <Image src="/simulator-cloude.png" alt="" aria-hidden width={160} height={75}
+        className="pointer-events-none absolute top-40 left-1/3 w-40 opacity-40"
+        style={{ height: "auto", animation: "pulse 5s ease-in-out infinite" }}
       />
       {SPARKLES.map((s) => (
         <Sparkle key={s.pos} {...s} />

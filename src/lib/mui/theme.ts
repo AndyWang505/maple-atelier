@@ -21,8 +21,8 @@ const theme = createTheme({
   cssVariables: true,
   palette: {
     mode: "light",
-    primary: { main: "#c8423d" },
-    secondary: { main: "#e87a4f" },
+    primary: { main: "#D97706" },
+    secondary: { main: "#F59E0B" },
     background: {
       default: "#fafafa",
       paper: "#ffffff",

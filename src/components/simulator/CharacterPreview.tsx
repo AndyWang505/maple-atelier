@@ -1,18 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import CircularProgress from "@mui/material/CircularProgress";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import CircularProgress from "@mui/material/CircularProgress";
 import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import ListSubheader from "@mui/material/ListSubheader";
-import IconButton from "@mui/material/IconButton";
+import ButtonBase from "@mui/material/ButtonBase";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import WallpaperIcon from "@mui/icons-material/Wallpaper";
 import DownloadIcon from "@mui/icons-material/Download";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShareIcon from "@mui/icons-material/Share";
+import ShuffleIcon from "@mui/icons-material/Shuffle";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import { useSimulator } from "@/store/simulator";
 import {
   earFlagsForId,
@@ -31,6 +35,31 @@ import {
 } from "@/lib/preview-config";
 
 type ImageStatus = "loading" | "loaded" | "error";
+
+const PILL_BTN_SX = {
+  px: 1.75,
+  py: 0.5,
+  fontSize: "0.78rem",
+  fontWeight: 600,
+  lineHeight: 1.4,
+  color: "#71717a",
+  "&.Mui-selected": {
+    bgcolor: "#F59E0B",
+    color: "#fff",
+    "&:hover": { bgcolor: "#D97706" },
+  },
+  "&:hover:not(.Mui-selected)": { bgcolor: "transparent" },
+} as const;
+
+const PILL_GROUP_SX = (dark: boolean) => ({
+  bgcolor: dark ? "rgba(255,255,255,0.12)" : "#f3f4f6",
+  borderRadius: "999px",
+  p: 0.5,
+  "& .MuiToggleButtonGroup-grouped": {
+    border: "none !important",
+    borderRadius: "999px !important",
+  },
+});
 
 const CANVAS_W = 192;
 const CANVAS_H = 192;
@@ -172,6 +201,8 @@ export default function CharacterPreview() {
   const animated = useSimulator((s) => s.animated);
   const setAnimated = useSimulator((s) => s.setAnimated);
   const expression = useSimulator((s) => s.expression);
+  const randomize = useSimulator((s) => s.randomize);
+  const reset = useSimulator((s) => s.reset);
   const [zoomIdx, setZoomIdx] = useState(0);
   const scale = ZOOM_LEVELS[zoomIdx];
   const [bgIdx, setBgIdx] = useState(0);
@@ -227,137 +258,139 @@ export default function CharacterPreview() {
   };
 
   return (
+    <>
     <div
-      className={`relative overflow-hidden isolate flex flex-col gap-4 w-full h-full min-h-[320px] rounded-2xl border border-white/80 backdrop-blur-md shadow-sm shadow-sky-200/40 p-4 transition-colors ${getCardBgClass(bg.id)}`}
+      className={`relative overflow-hidden isolate flex flex-col gap-4 w-full h-full min-h-[320px] rounded-2xl shadow-sm p-4 transition-colors ${getCardBgClass(bg.id)}`}
     >
       <div className="relative z-20 flex items-center justify-between gap-2 flex-wrap">
         <ToggleButtonGroup
           value={flipped ? "reverse" : "forward"}
           exclusive
           size="small"
-          onChange={(_, v: "forward" | "reverse" | null) =>
-            v && setFlipped(v === "reverse")
-          }
+          onChange={(_, v: "forward" | "reverse" | null) => v && setFlipped(v === "reverse")}
           aria-label="方向"
-          sx={isDarkBg ? { "& .MuiToggleButton-root": DARK_TOGGLE_SX } : undefined}
+          sx={PILL_GROUP_SX(isDarkBg)}
         >
-          <ToggleButton value="forward">正向</ToggleButton>
-          <ToggleButton value="reverse">反向</ToggleButton>
+          <ToggleButton value="forward" sx={PILL_BTN_SX}>正向</ToggleButton>
+          <ToggleButton value="reverse" sx={PILL_BTN_SX}>反向</ToggleButton>
         </ToggleButtonGroup>
 
-        <div className="flex items-center gap-2">
-          <ToggleButton
-            value="bg"
-            selected={bg.id !== "none"}
-            size="small"
-            onClick={() => setBgIdx((i) => (i + 1) % BG_OPTIONS.length)}
-            aria-label="切換背景"
-            sx={{ gap: 0.5, px: 1.25, ...(isDarkBg ? DARK_TOGGLE_SX : {}) }}
-          >
-            <WallpaperIcon fontSize="small" />
-            {bg.label}
-          </ToggleButton>
-
-          <ToggleButton
-            value="zoom"
-            selected={scale !== 1}
-            size="small"
-            onClick={() => setZoomIdx((i) => (i + 1) % ZOOM_LEVELS.length)}
-            aria-label="切換縮放"
-            sx={{ gap: 0.5, px: 1.25, ...(isDarkBg ? DARK_TOGGLE_SX : {}) }}
-          >
-            <ZoomInIcon fontSize="small" />
-            {scale}x
-          </ToggleButton>
-        </div>
+        <ToggleButton
+          value="zoom"
+          selected={scale !== 1}
+          size="small"
+          onClick={() => setZoomIdx((i) => (i + 1) % ZOOM_LEVELS.length)}
+          aria-label="切換縮放"
+          sx={{ gap: 0.5, px: 1.25, ...(isDarkBg ? DARK_TOGGLE_SX : {}) }}
+        >
+          <ZoomInIcon fontSize="small" />
+          {scale}x
+        </ToggleButton>
       </div>
 
       <div className="relative z-0 flex-1 min-h-[280px]">
         <PreviewImage key={url} url={url} scale={scale} isDarkBg={isDarkBg} animated={animated} />
       </div>
 
-      <div className="relative z-20 flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className={`text-xs ${isDarkBg ? "text-white/85" : "text-zinc-500"}`}
-          >
+      <div className="relative z-20 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className={`text-xs ${isDarkBg ? "text-white/85" : "text-zinc-500"}`}>
             動作
           </span>
           <Select
             size="small"
             value={stanceId}
-            onChange={(e: SelectChangeEvent<string>) =>
-              setStanceId(e.target.value)
-            }
+            onChange={(e: SelectChangeEvent<string>) => setStanceId(e.target.value)}
             aria-label="切換動作"
             sx={{ minWidth: 140, ...(isDarkBg ? DARK_SELECT_SX : {}) }}
             MenuProps={STANCE_MENU_PROPS}
           >
             <ListSubheader>站姿</ListSubheader>
             {STAND_STANCES.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.label}
-              </MenuItem>
+              <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
             ))}
             <ListSubheader>動作</ListSubheader>
             {BASIC_STANCES.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.label}
-              </MenuItem>
+              <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
             ))}
             <ListSubheader>攻擊</ListSubheader>
             {ATTACK_STANCES.map((s) => (
-              <MenuItem key={s.id} value={s.id}>
-                {s.label}
-              </MenuItem>
+              <MenuItem key={s.id} value={s.id}>{s.label}</MenuItem>
             ))}
           </Select>
-
-          <ToggleButtonGroup
-            value={animated ? "animated" : "static"}
-            exclusive
-            size="small"
-            onChange={(_, v: "static" | "animated" | null) =>
-              v && setAnimated(v === "animated")
-            }
-            aria-label="圖片 / 動畫"
-            sx={isDarkBg ? { "& .MuiToggleButton-root": DARK_TOGGLE_SX } : undefined}
-          >
-            <ToggleButton value="static">圖片</ToggleButton>
-            <ToggleButton value="animated">動畫</ToggleButton>
-          </ToggleButtonGroup>
         </div>
-
-        <div className="flex items-center gap-1">
-          <IconButton
-            size="small"
-            onClick={handleDownload}
-            aria-label="下載"
-            title="下載"
-            sx={isDarkBg ? { color: "rgba(255,255,255,0.85)" } : undefined}
-          >
-            <DownloadIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={handleCopyUrl}
-            aria-label="複製連結"
-            title="複製連結"
-            sx={isDarkBg ? { color: "rgba(255,255,255,0.85)" } : undefined}
-          >
-            <ContentCopyIcon fontSize="small" />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={handleShare}
-            aria-label="分享"
-            title="分享"
-            sx={isDarkBg ? { color: "rgba(255,255,255,0.85)" } : undefined}
-          >
-            <ShareIcon fontSize="small" />
-          </IconButton>
-        </div>
+        <ToggleButtonGroup
+          value={animated ? "animated" : "static"}
+          exclusive
+          size="small"
+          onChange={(_, v: "static" | "animated" | null) => v && setAnimated(v === "animated")}
+          aria-label="圖片 / 動畫"
+          sx={PILL_GROUP_SX(isDarkBg)}
+        >
+          <ToggleButton value="static" sx={PILL_BTN_SX}>圖片</ToggleButton>
+          <ToggleButton value="animated" sx={PILL_BTN_SX}>動畫</ToggleButton>
+        </ToggleButtonGroup>
       </div>
+
     </div>
+
+    <div className="rounded-2xl bg-white shadow-sm px-4 py-2.5 flex items-center gap-3">
+      <WallpaperIcon sx={{ fontSize: 16, color: "#71717a", flexShrink: 0 }} />
+      <Typography variant="caption" sx={{ fontWeight: 600, color: "#71717a", whiteSpace: "nowrap" }}>
+        背景
+      </Typography>
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={bg.id}
+        onChange={(_, val: string | null) => {
+          if (!val) return;
+          const idx = BG_OPTIONS.findIndex((o) => o.id === val);
+          if (idx !== -1) setBgIdx(idx);
+        }}
+        aria-label="切換背景"
+        sx={{ ml: "auto" }}
+      >
+        {BG_OPTIONS.map(({ id, label }) => (
+          <ToggleButton key={id} value={id} sx={{ px: 2, py: 0.5, fontSize: "0.75rem" }}>
+            {label}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
+    </div>
+
+    <div className="rounded-2xl bg-white shadow-sm flex items-center py-1 px-2">
+      {([
+        { icon: <ShuffleIcon fontSize="small" />, label: "隨機", onClick: randomize },
+        { icon: <RestartAltIcon fontSize="small" />, label: "重置", onClick: reset },
+        null,
+        { icon: <DownloadIcon fontSize="small" />, label: "下載", onClick: handleDownload },
+        { icon: <ContentCopyIcon fontSize="small" />, label: "複製", onClick: handleCopyUrl },
+        { icon: <ShareIcon fontSize="small" />, label: "分享", onClick: () => void handleShare() },
+      ] as const).map((item) =>
+        item === null ? (
+          <Divider key="divider" orientation="vertical" flexItem sx={{ mx: 1, my: 0.5 }} />
+        ) : (
+          <ButtonBase
+            key={item.label}
+            onClick={item.onClick}
+            sx={{
+              flex: 1,
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 0.5,
+              py: 1.5,
+              borderRadius: 1,
+              color: "text.secondary",
+              fontSize: "0.6875rem",
+            }}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </ButtonBase>
+        )
+      )}
+    </div>
+    </>
   );
 }
