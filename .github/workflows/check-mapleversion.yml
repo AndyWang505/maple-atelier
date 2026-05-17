@@ -16,18 +16,15 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Fetch latest TWMS version
         id: fetch
         run: |
           set -euo pipefail
           LATEST=$(curl -fsSL https://maplestory.io/api/wz \
-            | jq -r '.[] | select(.region=="TWMS" and .isReady==true) | .mapleVersionId')
+            | jq -r '[.[] | select(.region=="TWMS" and .isReady==true) | .mapleVersionId] | max')
           CURRENT=$(grep -oP 'DEFAULT_VERSION = "\K[^"]+' src/lib/maplestory/urls.ts)
           if [ -z "$LATEST" ]; then
             echo "::error::Could not parse TWMS version from /api/wz"
