@@ -1,3 +1,7 @@
 import { defineCloudflareConfig } from "@opennextjs/cloudflare";
+import kvIncrementalCache from "@opennextjs/cloudflare/overrides/incremental-cache/kv-incremental-cache";
+import { withRegionalCache } from "@opennextjs/cloudflare/overrides/incremental-cache/regional-cache";
 
-export default defineCloudflareConfig();
+export default defineCloudflareConfig({
+  incrementalCache: withRegionalCache(kvIncrementalCache, { mode: "long-lived" }),
+});

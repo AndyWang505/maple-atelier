@@ -24,7 +24,10 @@ database_name = "maple-atelier-prod"
 database_id = "794c4372-ab74-4dd4-8419-53106496adb3"
 migrations_dir = "drizzle"
 
-# 之後做 KV 快取 maplestory.io 結果時開啟
-# [[kv_namespaces]]
-# binding = "MAPLESTORY_CACHE"
-# id = ""
+[[kv_namespaces]]
+binding = "NEXT_INC_CACHE_KV"
+id = "d3cd3482eb3d4f73b9639fac82e335c5"
+
+[[env.production.kv_namespaces]]
+binding = "NEXT_INC_CACHE_KV"
+id = "77d4e262381b464e9dc1b40b0ff3f08f"
