@@ -18,7 +18,7 @@
     "db:migrate:remote": "wrangler d1 migrations apply maple-atelier --remote"
   },
   "dependencies": {
-    "@auth/drizzle-adapter": "^1.11.2",
+    "@auth/drizzle-adapter": "^1.11.3",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -30,8 +30,8 @@
     "drizzle-orm": "^0.45.2",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
-    "next": "16.2.6",
-    "next-auth": "5.0.0-beta.31",
+    "next": "16.3.3",
+    "next-auth": "5.0.0-beta.32",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "swr": "^2.4.1",
@@ -45,17 +45,27 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
-    "eslint-config-next": "16.2.6",
+    "eslint-config-next": "16.3.3",
     "tailwindcss": "^4",
     "typescript": "^5",
     "wrangler": "^4.90.0"
   },
   "pnpm": {
     "overrides": {
-      "postcss": ">=8.5.10",
-      "esbuild": ">=0.25.0",
-      "qs": ">=6.15.2",
-      "ws": ">=8.20.1"
+      "postcss": "^8.5.23",
+      "esbuild": "^0.28.1",
+      "qs": "^6.15.2",
+      "ws": "^8.20.1",
+      "undici": "^7.29.0",
+      "nanoid": "^3.3.18",
+      "form-data": "^4.0.6",
+      "body-parser": "^2.3.0",
+      "js-yaml": "^4.3.1",
+      "@babel/core": "^7.29.6",
+      "sharp": "^0.35.0",
+      "brace-expansion@1": "^1.1.16",
+      "brace-expansion@2": "^2.1.4",
+      "brace-expansion@5": "^5.0.9"
     },
     "ignoredBuiltDependencies": [
       "sharp",
