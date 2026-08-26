@@ -18,6 +18,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // OpenNext bundles third-party code into .open-next; never our source.
+    ".open-next/**",
   ]),
 ]);
 
