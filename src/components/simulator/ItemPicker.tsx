@@ -15,6 +15,9 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Divider from "@mui/material/Divider";
+import ListSubheader from "@mui/material/ListSubheader";
+import MenuItem from "@mui/material/MenuItem";
+import Select, { type SelectChangeEvent } from "@mui/material/Select";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Button from "@mui/material/Button";
@@ -26,7 +29,13 @@ import PersonIcon from "@mui/icons-material/Person";
 import CheckroomIcon from "@mui/icons-material/Checkroom";
 import TwoWheelerIcon from "@mui/icons-material/TwoWheeler";
 import type { CatalogItem, Slot } from "@/types/maplestory";
-import { useSimulator } from "@/store/simulator";
+import { catalogKey, useSimulator } from "@/store/simulator";
+import {
+  defaultGroupId,
+  findSlotGroup,
+  getSlotGroups,
+  type SlotGroup,
+} from "@/lib/maplestory";
 import { useIsMobile } from "@/lib/hooks/use-breakpoint";
 import { EXPRESSIONS } from "@/lib/preview-config";
 import { ItemTile } from "@/components/simulator/ItemTile";
@@ -59,6 +68,11 @@ const CATEGORY_COLORS: Record<SlotCategory, { default: string; selected: string 
 
 type CashFilter = "all" | "regular" | "cash";
 
+const NO_GROUPS: ReadonlyArray<SlotGroup> = [];
+
+/** 少數方占不到這個比例就不顯示 toggle,免得留一個按不出東西的控制項。 */
+const CASH_MIX_MIN_RATIO = 0.1;
+
 export default function ItemPicker() {
   // @tanstack/react-virtual 回傳的函式無法被 React Compiler 安全 memo,顯式跳過
   "use no memo";
@@ -72,6 +86,8 @@ export default function ItemPicker() {
   // committedQuery 才實際參與過濾;query 只是輸入框值
   const [committedQuery, setCommittedQuery] = useState("");
   const [cashFilter, setCashFilter] = useState<CashFilter>("all");
+  // 記住每個 slot 選過的子分類,切走再切回來不會跳掉
+  const [groupBySlot, setGroupBySlot] = useState<Partial<Record<Slot, string>>>({});
 
   const equip = useSimulator((s) => s.equip);
   const equipped = useSimulator((s) => s.equipped);
@@ -80,12 +96,27 @@ export default function ItemPicker() {
   const region = useSimulator((s) => s.region);
   const isExpression = active === "expression";
   const activeSlot: Slot | null = isExpression ? null : active;
-  const slotCache = useSimulator((s) => activeSlot ? s.catalog[activeSlot] : undefined);
+
+  const groups = useMemo(
+    () => (activeSlot ? getSlotGroups(activeSlot) : NO_GROUPS),
+    [activeSlot],
+  );
+  const activeGroupId = activeSlot
+    ? (groupBySlot[activeSlot] ?? defaultGroupId(activeSlot))
+    : null;
+  const activeGroup =
+    activeSlot && activeGroupId ? findSlotGroup(activeSlot, activeGroupId) : null;
+
+  const slotCache = useSimulator((s) =>
+    activeSlot && activeGroupId
+      ? s.catalog[catalogKey(activeSlot, activeGroupId)]
+      : undefined,
+  );
   const loadSlot = useSimulator((s) => s.loadSlot);
   useEffect(() => {
-    if (!activeSlot) return;
-    void loadSlot(activeSlot);
-  }, [activeSlot, loadSlot, region]);
+    if (!activeSlot || !activeGroupId) return;
+    void loadSlot(activeSlot, { group: activeGroupId });
+  }, [activeSlot, activeGroupId, loadSlot, region]);
 
   const handleCategoryChange = (_: unknown, next: SlotCategory) => {
     if (next === category) return;
@@ -99,14 +130,26 @@ export default function ItemPicker() {
 
   const isGrouped = !!activeSlot && isColorSlot(activeSlot);
 
+  const showCashFilter = useMemo(() => {
+    if (category !== "equipment") return false;
+    // 一個 slot 只用一種分法 — 有子分類 Select 就不再疊正交的現金維度
+    if (groups.length > 1) return false;
+    const items = slotCache?.items;
+    if (!items?.length) return false;
+    const cash = items.filter((i) => i.isCash).length;
+    return (
+      Math.min(cash, items.length - cash) / items.length >= CASH_MIX_MIN_RATIO
+    );
+  }, [category, groups.length, slotCache?.items]);
+
   // 一般/現金 過濾僅作用在「裝備」分類;外觀分類略過此維度
   const cashFiltered = useMemo(() => {
     const items = slotCache?.items ?? [];
-    if (category !== "equipment" || cashFilter === "all") return items;
+    if (!showCashFilter || cashFilter === "all") return items;
     return items.filter((i) =>
       cashFilter === "cash" ? i.isCash : !i.isCash,
     );
-  }, [slotCache?.items, cashFilter, category]);
+  }, [slotCache?.items, cashFilter, showCashFilter]);
 
   const collapsed = useMemo(
     () => (activeSlot && isGrouped ? collapseColorGroups(activeSlot, cashFiltered) : cashFiltered),
@@ -134,6 +177,29 @@ export default function ItemPicker() {
       (e) => e.label.toLowerCase().includes(q) || e.id.toLowerCase().includes(q),
     );
   }, [q]);
+
+  // Select 的 children 必須攤平,ListSubheader 以 section 變化為界插入
+  const groupOptions = useMemo(() => {
+    const out: React.ReactElement[] = [];
+    let lastSection: string | undefined;
+    for (const g of groups) {
+      if (g.section && g.section !== lastSection) {
+        out.push(<ListSubheader key={`section-${g.section}`}>{g.section}</ListSubheader>);
+        lastSection = g.section;
+      }
+      out.push(
+        <MenuItem key={g.id} value={g.id}>
+          <span>{g.label}</span>
+          {g.hint && (
+            <span style={{ marginLeft: 8, fontSize: "0.75rem", color: "#a1a1aa" }}>
+              {g.hint}
+            </span>
+          )}
+        </MenuItem>,
+      );
+    }
+    return out;
+  }, [groups]);
 
   const status = slotCache?.status ?? "idle";
 
@@ -272,10 +338,11 @@ export default function ItemPicker() {
       </Tabs>
 
       <div className="px-4 py-3">
-        <div className="flex items-center gap-2">
+        {/* 同一列;寬度不夠時各自換行 */}
+        <div className="flex items-center gap-2 flex-wrap">
           <TextField
             size="small"
-            sx={{ flex: 1 }}
+            sx={{ flex: "1 1 200px", minWidth: 0 }}
             placeholder="搜尋名稱或 ID..."
             value={query}
             onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
@@ -307,7 +374,29 @@ export default function ItemPicker() {
               },
             }}
           />
-          {category === "equipment" && (
+          {activeSlot && activeGroupId && groups.length > 1 && (
+            <div
+              className="flex items-center gap-1.5"
+              style={{ flex: "1 1 200px", minWidth: 0 }}
+            >
+              <Typography variant="caption" sx={{ color: "#71717a", flexShrink: 0 }}>
+                分類
+              </Typography>
+              <Select
+                size="small"
+                value={activeGroupId}
+                onChange={(e: SelectChangeEvent<string>) =>
+                  setGroupBySlot((prev) => ({ ...prev, [activeSlot]: e.target.value }))
+                }
+                aria-label={`${SLOT_LABELS[activeSlot]}子分類`}
+                sx={{ flex: 1, minWidth: 0 }}
+                MenuProps={{ slotProps: { paper: { sx: { maxHeight: 420 } } } }}
+              >
+                {groupOptions}
+              </Select>
+            </div>
+          )}
+          {showCashFilter && (
             <ToggleButtonGroup
               value={cashFilter}
               exclusive
@@ -347,6 +436,7 @@ export default function ItemPicker() {
         ) : (
           status === "success" && (
             <Typography variant="caption" sx={{ display: "block", mt: 1.5, color: "#71717a" }}>
+              {groups.length > 1 && activeGroup ? `${activeGroup.label} · ` : ""}
               {q
                 ? <><span style={{ color: "#D97706", fontWeight: 600 }}>{visible.length}</span>{` / ${collapsed.length} ${unitLabel}`}</>
                 : `共 ${collapsed.length} ${unitLabel}`}
@@ -414,7 +504,11 @@ export default function ItemPicker() {
             <Button
               variant="text"
               size="small"
-              onClick={() => activeSlot && void loadSlot(activeSlot)}
+              onClick={() =>
+                activeSlot &&
+                activeGroupId &&
+                void loadSlot(activeSlot, { group: activeGroupId })
+              }
               sx={{ color: "#D97706", textDecoration: "underline" }}
             >
               重試

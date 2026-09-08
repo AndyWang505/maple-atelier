@@ -12,5 +12,11 @@ export {
   fetchSlotItemInfo,
   type ItemInfo,
 } from "./api";
+export {
+  defaultGroupId,
+  findSlotGroup,
+  getSlotGroups,
+  type SlotGroup,
+} from "./filters";
 export { earFlagsForId } from "./static-ears";
 export { isSyntheticSlot } from "./static-items";

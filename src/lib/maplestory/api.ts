@@ -4,7 +4,7 @@ import type {
   RegionInfo,
   Slot,
 } from "@/types/maplestory";
-import { SLOT_FILTERS, buildItemUrl } from "./filters";
+import { buildItemUrl, defaultGroupId, findSlotGroup } from "./filters";
 import { STATIC_EAR_ITEMS } from "./static-ears";
 import { STATIC_ITEMS_BY_SLOT } from "./static-items";
 import { STATIC_SKIN_ITEMS } from "./static-skins";
@@ -69,20 +69,36 @@ export async function fetchItemInfo(
   }
 }
 
+/**
+ * 撈某個 slot 的某一組子分類。上游會間歇回錯誤頁,所以走 allSettled —
+ * 部分失敗仍顯示撈到的部分,全滅才 throw。
+ */
 export async function fetchItemsBySlot(
   slot: Slot,
+  groupId: string = defaultGroupId(slot),
   opts?: MaplestoryClientOptions,
 ): Promise<CatalogItem[]> {
   const staticItems = STATIC_ITEMS_BY_SLOT[slot];
   if (staticItems) return [...staticItems];
 
-  const responses = await Promise.all(
-    SLOT_FILTERS[slot].map(async (filter) => {
+  const group = findSlotGroup(slot, groupId);
+  const settled = await Promise.allSettled(
+    group.filters.map(async (filter) => {
       const r = await fetch(buildItemUrl(filter, opts));
       if (!r.ok) throw new Error(`maplestory.io ${slot} returned ${r.status}`);
       return (await r.json()) as RawItem[];
     }),
   );
+
+  const responses = settled
+    .filter((s): s is PromiseFulfilledResult<RawItem[]> => s.status === "fulfilled")
+    .map((s) => s.value);
+  if (responses.length === 0) {
+    const [first] = settled;
+    throw first?.status === "rejected"
+      ? (first.reason as Error)
+      : new Error(`maplestory.io ${slot} returned no data`);
+  }
 
   const seen = new Set<number>();
   const items: CatalogItem[] = [];
@@ -92,7 +108,7 @@ export async function fetchItemsBySlot(
       seen.add(raw.id);
       items.push({
         id: raw.id,
-        // 偶有 maplestory.io 回傳沒 name 的 item,用 id 兜底避免下游 .toLowerCase() 炸
+        // 偶有上游回傳沒 name 的 item,用 id 兜底避免下游 .toLowerCase() 炸
         name: raw.name ?? `#${raw.id}`,
         slot,
         isCash: !!raw.isCash,

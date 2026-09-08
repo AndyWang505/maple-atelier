@@ -5,7 +5,11 @@ import Collapse from "@mui/material/Collapse";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { isStub as isStubItem, useSimulator } from "@/store/simulator";
+import {
+  isStub as isStubItem,
+  selectSlotItems,
+  useSimulator,
+} from "@/store/simulator";
 import { getSlotIconUrl } from "@/lib/maplestory";
 import { ItemIcon } from "@/components/ui/ItemIcon";
 import { SLOT_LABELS, SLOT_SECTIONS } from "@/lib/slot-taxonomy";
@@ -54,7 +58,7 @@ export default function EquipmentSlots({ hideTitle, scrollable }: { hideTitle?: 
               {equippedSlots.map((slot) => {
                 const item = equipped[slot]!;
                 const colorVariants = isColorSlot(slot)
-                  ? (catalog[slot]?.items ?? [])
+                  ? selectSlotItems(catalog, slot)
                       .filter((i) => isSameStyle(slot, i.id, item.id))
                       .sort(
                         (a, b) =>
