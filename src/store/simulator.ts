@@ -1,6 +1,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { fetchItemsBySlot, fetchSlotItemInfo } from "@/lib/maplestory";
+import {
+  defaultGroupId,
+  fetchItemsBySlot,
+  fetchSlotItemInfo,
+  getSlotGroups,
+} from "@/lib/maplestory";
 import {
   DEFAULT_OUTFIT_PAYLOAD,
   pickRandom,
@@ -21,7 +26,23 @@ interface SlotCache {
   error?: string;
 }
 
-type Catalog = Partial<Record<Slot, SlotCache>>;
+/** key = `slot:groupId` — 使用者只為實際瀏覽過的分類付流量。 */
+type Catalog = Record<string, SlotCache>;
+
+export const catalogKey = (slot: Slot, groupId: string) => `${slot}:${groupId}`;
+
+/** 該 slot 所有已快取分類的 items 攤平 */
+export const selectSlotItems = (
+  catalog: Catalog,
+  slot: Slot,
+): CatalogItem[] => {
+  const prefix = `${slot}:`;
+  const out: CatalogItem[] = [];
+  for (const [key, cache] of Object.entries(catalog)) {
+    if (key.startsWith(prefix)) out.push(...cache.items);
+  }
+  return out;
+};
 
 const DEFAULT_STANCE = "stand1";
 const DEFAULT_ANIMATED = false;
@@ -58,7 +79,11 @@ interface SimulatorState {
   setExpression: (expression: string) => void;
   /** 切換 catalog 地區;清空目前 catalog 快取讓各 slot 下次打開時重新撈 */
   setRegion: (region: string, version: string) => void;
-  loadSlot: (slot: Slot, options?: { randomize?: boolean }) => Promise<void>;
+  /** group 省略時取該 slot 的預設分類 */
+  loadSlot: (
+    slot: Slot,
+    options?: { group?: string; randomize?: boolean },
+  ) => Promise<void>;
   loadOutfit: (payload: OutfitPayload) => void;
   loadDefault: () => void;
   /** 對目前 equipped 裡所有 stub 名稱發起升級請求(rehydrate 後補跑) */
@@ -112,19 +137,21 @@ export const useSimulator = create<SimulatorState>()(
         const state = get();
         const slots = pickRandomSlotSet();
         const equipped: Equipped = {};
-        const slotsToFetch: Slot[] = [];
+        const toFetch: { slot: Slot; group: string }[] = [];
         for (const slot of slots) {
-          const cache = state.catalog[slot];
+          // 先均勻抽一組,否則永遠抽到件數最多的時裝武器
+          const group = pickRandom(getSlotGroups(slot))?.id ?? defaultGroupId(slot);
+          const cache = state.catalog[catalogKey(slot, group)];
           if (cache?.status === "success") {
             const item = pickRandom(cache.items);
             if (item) equipped[slot] = item;
           } else {
-            slotsToFetch.push(slot);
+            toFetch.push({ slot, group });
           }
         }
         set({ equipped, generation: state.generation + 1 });
-        for (const slot of slotsToFetch) {
-          void get().loadSlot(slot, { randomize: true });
+        for (const { slot, group } of toFetch) {
+          void get().loadSlot(slot, { group, randomize: true });
         }
       },
 
@@ -152,8 +179,7 @@ export const useSimulator = create<SimulatorState>()(
         for (const slot of SLOTS) {
           const ref = payload.slots[slot];
           if (!ref) continue;
-          const cache = state.catalog[slot];
-          const cached = cache?.items.find((i) => i.id === ref.id);
+          const cached = findCachedItem(state.catalog, slot, ref.id);
           equipped[slot] = cached ?? {
             id: ref.id,
             name: `#${ref.id}`,
@@ -183,9 +209,10 @@ export const useSimulator = create<SimulatorState>()(
       },
 
       loadSlot: async (slot, options = {}) => {
-        const { randomize = false } = options;
+        const { randomize = false, group = defaultGroupId(slot) } = options;
+        const key = catalogKey(slot, group);
         const startGen = get().generation;
-        const cached = get().catalog[slot];
+        const cached = get().catalog[key];
 
         if (cached?.status === "loading") return;
         if (cached?.status === "success") {
@@ -197,12 +224,12 @@ export const useSimulator = create<SimulatorState>()(
         }
 
         set((state) => ({
-          catalog: { ...state.catalog, [slot]: { status: "loading", items: [] } },
+          catalog: { ...state.catalog, [key]: { status: "loading", items: [] } },
         }));
 
         try {
           const { region, version } = get();
-          const items = await fetchItemsBySlot(slot, { region, version });
+          const items = await fetchItemsBySlot(slot, group, { region, version });
           set((state) => {
             let nextEquipped = state.equipped;
             const current = nextEquipped[slot];
@@ -219,7 +246,7 @@ export const useSimulator = create<SimulatorState>()(
               if (random) nextEquipped = { ...nextEquipped, [slot]: random };
             }
             return {
-              catalog: { ...state.catalog, [slot]: { status: "success", items } },
+              catalog: { ...state.catalog, [key]: { status: "success", items } },
               equipped: nextEquipped,
             };
           });
@@ -227,7 +254,7 @@ export const useSimulator = create<SimulatorState>()(
           set((state) => ({
             catalog: {
               ...state.catalog,
-              [slot]: {
+              [key]: {
                 status: "error",
                 items: [],
                 error: err instanceof Error ? err.message : "fetch failed",
@@ -253,6 +280,21 @@ export const useSimulator = create<SimulatorState>()(
     },
   ),
 );
+
+/** 跨該 slot 所有已快取分類找 item,還原時盡量避免留 stub */
+function findCachedItem(
+  catalog: Catalog,
+  slot: Slot,
+  id: number,
+): CatalogItem | undefined {
+  const prefix = `${slot}:`;
+  for (const [key, cache] of Object.entries(catalog)) {
+    if (!key.startsWith(prefix)) continue;
+    const hit = cache.items.find((i) => i.id === id);
+    if (hit) return hit;
+  }
+  return undefined;
+}
 
 /** 寫入「隨機抽到的 item」前再驗一次:期間沒被另一輪清空、且該 slot 還沒被搶先寫上 */
 function tryWriteRandomized(
